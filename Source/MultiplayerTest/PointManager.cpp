@@ -23,18 +23,18 @@ void APointManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Init and update interface for players
 	//IDK how to manage this w/o timers :(
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::InitGameInterface, 0.01);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateLabels, 0.01);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.01);
 
+	// Choose first active player
 	//TODO: implement random generation
 	if (HasAuthority())
 	{
 		ActivePlayer = "Player1";
-	}
-
-	
+	}	
 }
 
 
@@ -42,31 +42,67 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APointManager, Player1Points);
-	DOREPLIFETIME(APointManager, Player2Points);
 	DOREPLIFETIME(APointManager, Player1CardSlots);
 	DOREPLIFETIME(APointManager, Player2CardSlots);
 	DOREPLIFETIME(APointManager, ActivePlayer);
 	
 }
 
-// Called every frame
-void APointManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-	// FString DebugMsg1 = FString::Printf(TEXT("Player 1 score: %d"), Player1Points);
-	// FString DebugMsg2 = FString::Printf(TEXT("Player 2 score: %d"), Player2Points);
-	// GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Green, DebugMsg1);
-	// GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Green, DebugMsg2);
+
+void APointManager::EndTurn()
+{
+	if (ActivePlayer == "Player1")
+	{
+		// if (Player1CardSlots.Num() < 9)
+		// {
+		// 	Player1CardSlots.Add(FMath::RandRange(1, 9));		
+		// }
+		//
+		// FTimerHandle TimerHandle;
+		// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+		
+		ActivePlayer = "Player2";
+		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player2"));
+	}
+	else
+	{
+		ActivePlayer = "Player1";
+		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player1"));
+	}
 }
 
+bool APointManager::Multi_UpdateInterface_Validate()
+{
+	return true;
+}
 
+void APointManager::Multi_UpdateInterface_Implementation()
+{
+	if (!GameInterface)
+	{
+		InitGameInterface();
+	}
+	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots);
+}
+
+void APointManager::InitGameInterface()
+{
+	TArray<UUserWidget*> FoundWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UTestUserWidget::StaticClass());
+	if (FoundWidgets.Num() > 0)
+	{
+		if (UTestUserWidget* Widget = Cast<UTestUserWidget>(FoundWidgets[0]))
+		{
+			GameInterface = Widget;
+		}
+	}
+}
+
+// old way of increasing points (for reference)
+/*
 void APointManager::IncreasePlayer1Points()
 {
-	Player1Points += 1;
-	UE_LOG(LogTemp, Warning, TEXT("IncreasePlayer1Points %d"), Player1Points);
-
 	if (Player1CardSlots.Num() < 9)
 	{
 		Player1CardSlots.Add(FMath::RandRange(1, 9));		
@@ -90,9 +126,6 @@ bool APointManager::Server_IncreasePlayer2Points_Validate()
 
 void APointManager::Server_IncreasePlayer2Points_Implementation()
 {
-	Player2Points += 1;
-	GameInterface->UpdatePointsCounters(Player1Points, Player2Points);
-
 	if (Player2CardSlots.Num() < 9)
 	{
 		Player2CardSlots.Add(FMath::RandRange(1, 9));		
@@ -103,71 +136,6 @@ void APointManager::Server_IncreasePlayer2Points_Implementation()
 
 	
 }
-
-void APointManager::EndTurn()
-{
-	if (ActivePlayer == "Player1")
-	{
-		if (Player1CardSlots.Num() < 9)
-		{
-			Player1CardSlots.Add(FMath::RandRange(1, 9));		
-		}
-
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateLabels, 0.05);
-		
-		ActivePlayer = "Player2";
-		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player2"));
-	}
-	else
-	{
-		ActivePlayer = "Player1";
-		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player1"));
-	}
-}
-
-void APointManager::InitPlayers()
-{
-	TArray<AActor*> Players; 
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATestCharacter::StaticClass(), Players);
-	if (Players.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("POINTMANAGER: Found %d players"), Players.Num());
-	}
-}
-
-bool APointManager::Multi_UpdateLabels_Validate()
-{
-	return true;
-}
-
-void APointManager::Multi_UpdateLabels_Implementation()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Multi_UpdateLabels_Implementation %d %d"), Player1Points, Player2Points);
-	if (!GameInterface)
-	{
-		InitGameInterface();
-	}
-	GameInterface->UpdatePointsCounters(Player1Points, Player2Points);
-	GameInterface->UpdateCardSlots(Player1CardSlots, Player2CardSlots);
-}
-
-void APointManager::InitGameInterface()
-{
-	// Finding game interface
-	TArray<UUserWidget*> FoundWidgets;
-	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UTestUserWidget::StaticClass());
-	UE_LOG(LogTemp, Warning, TEXT("Found %d widgets"), FoundWidgets.Num());
-	if (FoundWidgets.Num() > 0)
-	{
-		
-		if (UTestUserWidget* Widget = Cast<UTestUserWidget>(FoundWidgets[0]))
-		{
-			GameInterface = Widget;
-		}
-	}
-}
-
-
+*/
 
 

@@ -14,11 +14,8 @@ class MULTIPLAYERTEST_API APointManager : public AActor
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(Replicated)
-	int32 Player1Points;
-	UPROPERTY(Replicated)
-	int32 Player2Points;
 
+	// Current player cards
 	UPROPERTY(Replicated)
 	TArray<int32> Player1CardSlots = {};
 	UPROPERTY(Replicated)
@@ -33,39 +30,25 @@ public:
 	// Sets default values for this actor's properties
 	APointManager();
 
-	void IncreasePlayer1Points();
-	void IncreasePlayer2Points();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//void UpdateLabels();
-
+	// Finds game interface
 	void InitGameInterface();
-	
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_UpdateLabels();
-	bool Multi_UpdateLabels_Validate();
-	void Multi_UpdateLabels_Implementation();
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_IncreasePlayer2Points();
-	bool Server_IncreasePlayer2Points_Validate();
-	void Server_IncreasePlayer2Points_Implementation();
 
-	
-	// UFUNCTION(NetMulticast, Reliable, WithValidation)
-	// void Multi_IncreasePlayer2Points();
-	// bool Multi_IncreasePlayer2Points_Validate();
-	// void Multi_IncreasePlayer2Points_Implementation();
+	// Multicast update of interface after changes in game state
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_UpdateInterface();
+	bool Multi_UpdateInterface_Validate();
+	void Multi_UpdateInterface_Implementation();
+		
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
+
+	// Defines replicated params
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//Used to end turn for players
 	void EndTurn();
-
-	void InitPlayers();
+	
 };

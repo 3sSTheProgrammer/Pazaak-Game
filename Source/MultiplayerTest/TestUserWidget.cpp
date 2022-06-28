@@ -4,23 +4,21 @@
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "TestActor.h"
 #include "TestCharacter.h"
 #include "Components/Image.h"
 #include "PointManager.h"
-#include "GameFramework/GameSession.h"
 
 void UTestUserWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
-	if (TestButton)
+
+	// Binding button delegate
+	if (ButtonEndTurn)
 	{
-		TestButton->OnClicked.AddDynamic(this, &UTestUserWidget::TestButtonOnClick);
 		ButtonEndTurn->OnClicked.AddDynamic(this, &UTestUserWidget::Server_ButtonEndTurnOnClick);
 	}
 
-	
+	// Filling arrays
 	CardValues.Add(CardEmpty);
 	CardValues.Add(CardOne);
 	CardValues.Add(CardTwo);
@@ -51,10 +49,10 @@ void UTestUserWidget::NativeConstruct()
 	Player2CardSlotsArray.Add(ImgPlayer2Slot7);
 	Player2CardSlotsArray.Add(ImgPlayer2Slot8);
 	Player2CardSlotsArray.Add(ImgPlayer2Slot9);
-	//ImgPlayer1Slot1->SetBrushFromTexture(CardOne);
-
+	
 	InitPointManager();
 
+	// Identify player name
 	if (GetWorld()->IsServer())
 	{
 		PlayerName = "Player1";
@@ -65,80 +63,31 @@ void UTestUserWidget::NativeConstruct()
 	}
 }
 
-void UTestUserWidget::UpdateCounter(int Count)
+void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots)
 {
-	TestTextBlock->SetText(FText::AsNumber(Count));
-}
-
-void UTestUserWidget::UpdatePointsCounters(int32 SelfPoints, int32 OpponentPoints)
-{
-	UE_LOG(LogTemp, Warning, TEXT("UpdatePointsCounters %d %d"), SelfPoints, OpponentPoints);
-	TextSelfPoints->SetText(FText::AsNumber(SelfPoints));
-	TextOpponentPoints->SetText(FText::AsNumber(OpponentPoints));
-}
-
-void UTestUserWidget::UpdateCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots)
-{
+	// Fill card slots
 	for (int i = 0; i < Player1CardSlots.Num(); ++i)
 	{
 		FillSlot(Player1CardSlotsArray[i], Player1CardSlots[i]);
-		
-		//Player1CardSlotsArray[i]->SetText(FText::AsNumber(Player1CardSlots[i]));
 	}
 	for (int i = 0; i < Player2CardSlots.Num(); ++i)
 	{
 		FillSlot(Player2CardSlotsArray[i], Player2CardSlots[i]);
-		//Player2CardSlotsArray[i]->SetText(FText::AsNumber(Player2CardSlots[i]));
 	}
+
+	//TODO: Show total scores
+
+	//TODO: Enable/disable buttons
+	
 }
 
-void UTestUserWidget::TestButtonOnClick()
-{
-	//UE_LOG(LogTemp, Warning, TEXT("TestButton was pressed by %s"), *GetOwningPlayer()->GetName());
-	
-	TArray<AActor*> TestCharacters;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATestCharacter::StaticClass(),TestCharacters);
-	if (TestCharacters.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Found %d test characters"), TestCharacters.Num());
-		//GetPlayerControllerFromNetId()
-		// for (AActor* Actor : TestActors)
-		// {
-		// 	if (ATestActor* CastedActor = Cast<ATestActor>(Actor))
-		// 	{
-		// 		if (GetWorld()->IsServer())
-		// 		{
-		// 			CastedActor->UseParamChange();
-		// 		}
-		// 		else
-		// 		{
-		// 			UE_LOG(LogTemp, Warning, TEXT("calling Server_TestButtonOnClick"));
-		// 			Server_TestButtonOnClick(CastedActor);
-		// 		}
-		// 	}
-		// }
-	}
-	
-}
+
 
 void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 {
-	if (CardSlot)
+	if (CardSlot && CardValue)
 	{
 		CardSlot->SetBrushFromTexture(CardValues[CardValue]);
-	}
-}
-
-bool UTestUserWidget::Server_TestButtonOnClick_Validate(ATestActor* TestActor)
-{
-	return true;
-}
-
-void UTestUserWidget::Server_TestButtonOnClick_Implementation(ATestActor* TestActor)
-{
-	if (TestActor)
-	{
-		TestActor->UseParamChange();
 	}
 }
 
@@ -150,10 +99,11 @@ bool UTestUserWidget::Server_ButtonEndTurnOnClick_Validate()
 
 void UTestUserWidget::Server_ButtonEndTurnOnClick_Implementation()
 {
-	if (PointManager)
+	if (!PointManager)
 	{
-		PointManager->EndTurn();
+		InitPointManager();
 	}
+	PointManager->EndTurn();
 }
 
 void UTestUserWidget::InitPointManager()

@@ -6,10 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "TestUserWidget.generated.h"
 
-class UTextBlock;
 class UButton;
 class UImage;
-class ATestActor;
 class APointManager;
 /**
  * 
@@ -21,39 +19,11 @@ class MULTIPLAYERTEST_API UTestUserWidget : public UUserWidget
 	
 protected:
 	APointManager* PointManager;
-	
-	//FOR TESTS
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* TestTextBlock;
-	UPROPERTY(meta = (BindWidget))
-	UButton* TestButton;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* TextSelfPoints;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* TextOpponentPoints;
 
 	UPROPERTY(meta = (BindWidget))
 		UButton* ButtonEndTurn;
 	UPROPERTY(meta = (BindWidget))
 		UButton* ButtonPass;
-	
-	// //FOR TESTS
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player1CardSlot0;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player1CardSlot1;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player1CardSlot2;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player1CardSlot3;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player2CardSlot0;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player2CardSlot1;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player2CardSlot2;
-	// UPROPERTY(meta = (BindWidget))
-	// UTextBlock* Player2CardSlot3;
 
 	//Players card slots
 	UPROPERTY(meta = (BindWidget))
@@ -125,31 +95,22 @@ protected:
 public:
 	virtual void NativeConstruct() override;
 
-	void UpdateCounter(int Count);
-
+	//Called in multicast function to update player interface according to game state
 	UFUNCTION()
-	void UpdatePointsCounters(int32 SelfPoints, int32 OpponentPoints);
-
-	UFUNCTION()
-	void UpdateCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
+	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
 	
 protected:
-	
-	UFUNCTION()
-	void TestButtonOnClick();
 
+	//Used in UpdatePlayerInterface
 	void FillSlot(UImage* CardSlot, int32 CardValue);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_TestButtonOnClick(ATestActor* TestActor);
-	bool Server_TestButtonOnClick_Validate(ATestActor* TestActor);
-	void Server_TestButtonOnClick_Implementation(ATestActor* TestActor);
 
+	//Called when ButtonEndTurn is pressed
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ButtonEndTurnOnClick();
 	bool Server_ButtonEndTurnOnClick_Validate();
 	void Server_ButtonEndTurnOnClick_Implementation();
-	
+
+	//Finds point manager in the world
 	void InitPointManager();
 	
 	
