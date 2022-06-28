@@ -7,6 +7,7 @@
 #include "TestActor.h"
 #include "TestCharacter.h"
 #include "Components/Image.h"
+#include "PointManager.h"
 #include "GameFramework/GameSession.h"
 
 void UTestUserWidget::NativeConstruct()
@@ -16,6 +17,7 @@ void UTestUserWidget::NativeConstruct()
 	if (TestButton)
 	{
 		TestButton->OnClicked.AddDynamic(this, &UTestUserWidget::TestButtonOnClick);
+		ButtonEndTurn->OnClicked.AddDynamic(this, &UTestUserWidget::Server_ButtonEndTurnOnClick);
 	}
 
 	
@@ -50,6 +52,17 @@ void UTestUserWidget::NativeConstruct()
 	Player2CardSlotsArray.Add(ImgPlayer2Slot8);
 	Player2CardSlotsArray.Add(ImgPlayer2Slot9);
 	//ImgPlayer1Slot1->SetBrushFromTexture(CardOne);
+
+	InitPointManager();
+
+	if (GetWorld()->IsServer())
+	{
+		PlayerName = "Player1";
+	}
+	else
+	{
+		PlayerName = "Player2";
+	}
 }
 
 void UTestUserWidget::UpdateCounter(int Count)
@@ -81,7 +94,7 @@ void UTestUserWidget::UpdateCardSlots(TArray<int32> Player1CardSlots, TArray<int
 
 void UTestUserWidget::TestButtonOnClick()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TestButton was pressed by %s"), *GetOwningPlayer()->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("TestButton was pressed by %s"), *GetOwningPlayer()->GetName());
 	
 	TArray<AActor*> TestCharacters;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATestCharacter::StaticClass(),TestCharacters);
@@ -126,5 +139,29 @@ void UTestUserWidget::Server_TestButtonOnClick_Implementation(ATestActor* TestAc
 	if (TestActor)
 	{
 		TestActor->UseParamChange();
+	}
+}
+
+bool UTestUserWidget::Server_ButtonEndTurnOnClick_Validate()
+{
+	return true;
+}
+
+
+void UTestUserWidget::Server_ButtonEndTurnOnClick_Implementation()
+{
+	if (PointManager)
+	{
+		PointManager->EndTurn();
+	}
+}
+
+void UTestUserWidget::InitPointManager()
+{
+	TArray<AActor*> PointManagers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointManager::StaticClass(),PointManagers);
+	if (PointManagers.Num() > 0)
+	{
+		PointManager = Cast<APointManager>(PointManagers[0]);
 	}
 }

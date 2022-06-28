@@ -26,6 +26,9 @@ protected:
 	
 	UPROPERTY()
 	UTestUserWidget* GameInterface;
+
+	UPROPERTY(Replicated)
+	FString ActivePlayer;
 public:	
 	// Sets default values for this actor's properties
 	APointManager();
@@ -51,6 +54,7 @@ protected:
 	bool Server_IncreasePlayer2Points_Validate();
 	void Server_IncreasePlayer2Points_Implementation();
 
+	
 	// UFUNCTION(NetMulticast, Reliable, WithValidation)
 	// void Multi_IncreasePlayer2Points();
 	// bool Multi_IncreasePlayer2Points_Validate();
@@ -60,4 +64,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void EndTurn();
+
+	void InitPlayers();
 };

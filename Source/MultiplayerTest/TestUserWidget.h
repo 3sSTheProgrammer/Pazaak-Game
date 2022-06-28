@@ -10,6 +10,7 @@ class UTextBlock;
 class UButton;
 class UImage;
 class ATestActor;
+class APointManager;
 /**
  * 
  */
@@ -19,6 +20,8 @@ class MULTIPLAYERTEST_API UTestUserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
+	APointManager* PointManager;
+	
 	//FOR TESTS
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TestTextBlock;
@@ -29,23 +32,28 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextOpponentPoints;
 
-	//FOR TESTS
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player1CardSlot0;
+		UButton* ButtonEndTurn;
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player1CardSlot1;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player1CardSlot2;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player1CardSlot3;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player2CardSlot0;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player2CardSlot1;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player2CardSlot2;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Player2CardSlot3;
+		UButton* ButtonPass;
+	
+	// //FOR TESTS
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player1CardSlot0;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player1CardSlot1;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player1CardSlot2;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player1CardSlot3;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player2CardSlot0;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player2CardSlot1;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player2CardSlot2;
+	// UPROPERTY(meta = (BindWidget))
+	// UTextBlock* Player2CardSlot3;
 
 	//Players card slots
 	UPROPERTY(meta = (BindWidget))
@@ -112,6 +120,8 @@ protected:
 	TArray<UTexture2D*> CardValues;
 	TArray<UImage*> Player1CardSlotsArray;
 	TArray<UImage*> Player2CardSlotsArray;
+
+	FString PlayerName;
 public:
 	virtual void NativeConstruct() override;
 
@@ -134,7 +144,13 @@ protected:
 	void Server_TestButtonOnClick(ATestActor* TestActor);
 	bool Server_TestButtonOnClick_Validate(ATestActor* TestActor);
 	void Server_TestButtonOnClick_Implementation(ATestActor* TestActor);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ButtonEndTurnOnClick();
+	bool Server_ButtonEndTurnOnClick_Validate();
+	void Server_ButtonEndTurnOnClick_Implementation();
 	
+	void InitPointManager();
 	
 	
 };

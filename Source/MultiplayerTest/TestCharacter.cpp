@@ -38,6 +38,8 @@ void ATestCharacter::BeginPlay()
 		
 	}
 
+	UUserWidget* PlayerInterface = CreateWidget(GetWorld(), PlayerWidgetClass);
+	PlayerInterface->AddToViewport();
 	// Finding points manager
 	TArray<AActor*> FoundPointManagers;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointManager::StaticClass(), FoundPointManagers);

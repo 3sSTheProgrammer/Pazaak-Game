@@ -20,14 +20,19 @@ protected:
 
 	UPROPERTY()
 	APointManager* PointManager;
+	
 public:
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<UUserWidget> PlayerWidgetClass;
+	
 	// Sets default values for this character's properties
 	ATestCharacter();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
 	void IncreasePoints();
 
 	UFUNCTION(Server, Reliable, WithValidation)

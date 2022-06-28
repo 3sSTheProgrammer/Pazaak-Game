@@ -3,8 +3,10 @@
 
 #include "PointManager.h"
 
+#include "TestCharacter.h"
 #include "TestUserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -25,6 +27,13 @@ void APointManager::BeginPlay()
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::InitGameInterface, 0.01);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateLabels, 0.01);
+
+	//TODO: implement random generation
+	if (HasAuthority())
+	{
+		ActivePlayer = "Player1";
+	}
+
 	
 }
 
@@ -37,6 +46,7 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(APointManager, Player2Points);
 	DOREPLIFETIME(APointManager, Player1CardSlots);
 	DOREPLIFETIME(APointManager, Player2CardSlots);
+	DOREPLIFETIME(APointManager, ActivePlayer);
 	
 }
 
@@ -45,10 +55,10 @@ void APointManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FString DebugMsg1 = FString::Printf(TEXT("Player 1 score: %d"), Player1Points);
-	FString DebugMsg2 = FString::Printf(TEXT("Player 2 score: %d"), Player2Points);
-	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Green, DebugMsg1);
-	GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Green, DebugMsg2);
+	// FString DebugMsg1 = FString::Printf(TEXT("Player 1 score: %d"), Player1Points);
+	// FString DebugMsg2 = FString::Printf(TEXT("Player 2 score: %d"), Player2Points);
+	// GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Green, DebugMsg1);
+	// GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Green, DebugMsg2);
 }
 
 
@@ -92,6 +102,38 @@ void APointManager::Server_IncreasePlayer2Points_Implementation()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateLabels, 0.05);
 
 	
+}
+
+void APointManager::EndTurn()
+{
+	if (ActivePlayer == "Player1")
+	{
+		if (Player1CardSlots.Num() < 9)
+		{
+			Player1CardSlots.Add(FMath::RandRange(1, 9));		
+		}
+
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateLabels, 0.05);
+		
+		ActivePlayer = "Player2";
+		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player2"));
+	}
+	else
+	{
+		ActivePlayer = "Player1";
+		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player1"));
+	}
+}
+
+void APointManager::InitPlayers()
+{
+	TArray<AActor*> Players; 
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATestCharacter::StaticClass(), Players);
+	if (Players.Num() > 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("POINTMANAGER: Found %d players"), Players.Num());
+	}
 }
 
 bool APointManager::Multi_UpdateLabels_Validate()
