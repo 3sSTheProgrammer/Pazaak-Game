@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TestUserWidget.h"
+
+#include "PazaakPlayerController.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "TestCharacter.h"
 #include "Components/Image.h"
-#include "PointManager.h"
 
 void UTestUserWidget::NativeConstruct()
 {
@@ -15,7 +15,7 @@ void UTestUserWidget::NativeConstruct()
 	// Binding button delegate
 	if (ButtonEndTurn)
 	{
-		ButtonEndTurn->OnClicked.AddDynamic(this, &UTestUserWidget::Server_ButtonEndTurnOnClick);
+		ButtonEndTurn->OnClicked.AddDynamic(this, &UTestUserWidget::ButtonEndTurnOnClick);
 	}
 
 	// Filling arrays
@@ -50,11 +50,12 @@ void UTestUserWidget::NativeConstruct()
 	Player2CardSlotsArray.Add(ImgPlayer2Slot8);
 	Player2CardSlotsArray.Add(ImgPlayer2Slot9);
 	
-	InitPointManager();
+	//InitPointManager();
 
 	// Identify player name
 	if (GetWorld()->IsServer())
 	{
+		//TODO: Make constants
 		PlayerName = "Player1";
 	}
 	else
@@ -63,7 +64,8 @@ void UTestUserWidget::NativeConstruct()
 	}
 }
 
-void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots)
+void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
+	TArray<int32> Player2CardSlots, FString ActivePlayer)
 {
 	// Fill card slots
 	for (int i = 0; i < Player1CardSlots.Num(); ++i)
@@ -77,11 +79,22 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArr
 
 	//TODO: Show total scores
 
-	//TODO: Enable/disable buttons
-	
+	//Enable/disable buttons
+	//UE_LOG(LogTemp, Warning, TEXT("I am %s"), *PlayerName);
+	//UE_LOG(LogTemp, Warning, TEXT("Active player is %s"), *ActivePlayer);
+	if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
+		ButtonEndTurn->SetIsEnabled(true);
+		ButtonPass->SetIsEnabled(true);
+	}
+	else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled()) 
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
+		ButtonEndTurn->SetIsEnabled(false);
+		ButtonPass->SetIsEnabled(false);
+	}
 }
-
-
 
 void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 {
@@ -91,27 +104,14 @@ void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 	}
 }
 
-bool UTestUserWidget::Server_ButtonEndTurnOnClick_Validate()
+void UTestUserWidget::ButtonEndTurnOnClick()
 {
-	return true;
-}
-
-
-void UTestUserWidget::Server_ButtonEndTurnOnClick_Implementation()
-{
-	if (!PointManager)
+	if(APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
-		InitPointManager();
-	}
-	PointManager->EndTurn();
-}
-
-void UTestUserWidget::InitPointManager()
-{
-	TArray<AActor*> PointManagers;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APointManager::StaticClass(),PointManagers);
-	if (PointManagers.Num() > 0)
-	{
-		PointManager = Cast<APointManager>(PointManagers[0]);
+		if (APazaakPlayerController* PazaakPlayerController = Cast<APazaakPlayerController>(PlayerController))
+		{
+			PazaakPlayerController->Server_EndTurn();
+		}			
 	}
 }
+

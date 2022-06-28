@@ -8,7 +8,6 @@
 
 class UButton;
 class UImage;
-class APointManager;
 /**
  * 
  */
@@ -18,7 +17,7 @@ class MULTIPLAYERTEST_API UTestUserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
-	APointManager* PointManager;
+	//APointManager* PointManager;
 
 	UPROPERTY(meta = (BindWidget))
 		UButton* ButtonEndTurn;
@@ -97,7 +96,7 @@ public:
 
 	//Called in multicast function to update player interface according to game state
 	UFUNCTION()
-	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
+	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer);
 	
 protected:
 
@@ -105,13 +104,16 @@ protected:
 	void FillSlot(UImage* CardSlot, int32 CardValue);
 
 	//Called when ButtonEndTurn is pressed
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ButtonEndTurnOnClick();
-	bool Server_ButtonEndTurnOnClick_Validate();
-	void Server_ButtonEndTurnOnClick_Implementation();
+	UFUNCTION()
+	void ButtonEndTurnOnClick();
+	
+	// UFUNCTION(Server, Reliable, WithValidation)
+	// void Server_ButtonEndTurnOnClick();
+	// bool Server_ButtonEndTurnOnClick_Validate();
+	// void Server_ButtonEndTurnOnClick_Implementation();
 
 	//Finds point manager in the world
-	void InitPointManager();
+	//void InitPointManager();
 	
 	
 };

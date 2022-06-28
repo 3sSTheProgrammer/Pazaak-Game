@@ -49,26 +49,33 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 }
 
 
-
 void APointManager::EndTurn()
 {
 	if (ActivePlayer == "Player1")
 	{
-		// if (Player1CardSlots.Num() < 9)
-		// {
-		// 	Player1CardSlots.Add(FMath::RandRange(1, 9));		
-		// }
-		//
-		// FTimerHandle TimerHandle;
-		// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+		if (Player1CardSlots.Num() < 9)
+		{
+			//TODO: Choose card from pool
+			Player1CardSlots.Add(FMath::RandRange(1, 9));		
+		}
 		
 		ActivePlayer = "Player2";
-		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player2"));
+		
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 	}
 	else
 	{
+		if (Player2CardSlots.Num() < 9)
+		{
+			//TODO: Choose card from pool
+			Player2CardSlots.Add(FMath::RandRange(1, 9));		
+		}
+
 		ActivePlayer = "Player1";
-		UE_LOG(LogTemp, Warning, TEXT("Active player now is Player1"));
+		
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 	}
 }
 
@@ -83,7 +90,7 @@ void APointManager::Multi_UpdateInterface_Implementation()
 	{
 		InitGameInterface();
 	}
-	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots);
+	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer);
 }
 
 void APointManager::InitGameInterface()
