@@ -23,7 +23,7 @@ void ATestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	if (PlayerInputComponent)
 	{
-		// Bind player actions
+		//TODO Bind player actions
 		// Pause - Escape
 		// End turn - Space
 		// Pass - Enter

@@ -8,6 +8,7 @@
 
 class UButton;
 class UImage;
+class APazaakPlayerController;
 /**
  * 
  */
@@ -19,6 +20,9 @@ class MULTIPLAYERTEST_API UTestUserWidget : public UUserWidget
 protected:
 	//APointManager* PointManager;
 
+	//Saved for efficiency
+	APazaakPlayerController* PazaakPlayerController;
+	
 	UPROPERTY(meta = (BindWidget))
 		UButton* ButtonEndTurn;
 	UPROPERTY(meta = (BindWidget))
@@ -106,14 +110,18 @@ protected:
 	//Called when ButtonEndTurn is pressed
 	UFUNCTION()
 	void ButtonEndTurnOnClick();
+
+	//Called when ButtonPass is pressed
+	UFUNCTION()
+	void ButtonPassOnClick();
 	
 	// UFUNCTION(Server, Reliable, WithValidation)
 	// void Server_ButtonEndTurnOnClick();
 	// bool Server_ButtonEndTurnOnClick_Validate();
 	// void Server_ButtonEndTurnOnClick_Implementation();
 
-	//Finds point manager in the world
-	//void InitPointManager();
+	//Finds pazaak player controller
+	void InitPlayerController();
 	
 	
 };

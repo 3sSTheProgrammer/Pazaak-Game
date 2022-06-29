@@ -17,7 +17,10 @@ void UTestUserWidget::NativeConstruct()
 	{
 		ButtonEndTurn->OnClicked.AddDynamic(this, &UTestUserWidget::ButtonEndTurnOnClick);
 	}
-
+	if (ButtonPass)
+	{
+		ButtonPass->OnClicked.AddDynamic(this, &UTestUserWidget::ButtonPassOnClick);
+	}
 	// Filling arrays
 	CardValues.Add(CardEmpty);
 	CardValues.Add(CardOne);
@@ -50,8 +53,8 @@ void UTestUserWidget::NativeConstruct()
 	Player2CardSlotsArray.Add(ImgPlayer2Slot8);
 	Player2CardSlotsArray.Add(ImgPlayer2Slot9);
 	
-	//InitPointManager();
-
+	InitPlayerController();
+	
 	// Identify player name
 	if (GetWorld()->IsServer())
 	{
@@ -80,17 +83,13 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 	//TODO: Show total scores
 
 	//Enable/disable buttons
-	//UE_LOG(LogTemp, Warning, TEXT("I am %s"), *PlayerName);
-	//UE_LOG(LogTemp, Warning, TEXT("Active player is %s"), *ActivePlayer);
 	if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
 		ButtonEndTurn->SetIsEnabled(true);
 		ButtonPass->SetIsEnabled(true);
 	}
 	else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled()) 
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
 		ButtonEndTurn->SetIsEnabled(false);
 		ButtonPass->SetIsEnabled(false);
 	}
@@ -106,12 +105,30 @@ void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 
 void UTestUserWidget::ButtonEndTurnOnClick()
 {
-	if(APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	if(!PazaakPlayerController)
 	{
-		if (APazaakPlayerController* PazaakPlayerController = Cast<APazaakPlayerController>(PlayerController))
+		InitPlayerController();
+	}
+	PazaakPlayerController->Server_EndTurn();
+}
+
+void UTestUserWidget::ButtonPassOnClick()
+{
+	if (!PazaakPlayerController)
+	{
+		InitPlayerController();
+	}
+	PazaakPlayerController->Server_Pass();
+}
+
+void UTestUserWidget::InitPlayerController()
+{
+	if (APlayerController* SomePlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (APazaakPlayerController* PlayerController = Cast<APazaakPlayerController>(SomePlayerController))
 		{
-			PazaakPlayerController->Server_EndTurn();
-		}			
+			PazaakPlayerController = PlayerController;
+		}	
 	}
 }
 

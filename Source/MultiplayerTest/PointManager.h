@@ -26,6 +26,13 @@ protected:
 
 	UPROPERTY(Replicated)
 	FString ActivePlayer;
+
+	//Player passed statuses
+	UPROPERTY(Replicated)
+	bool Player1Passed{ false };
+	UPROPERTY(Replicated)
+	bool Player2Passed{ false };
+	
 public:	
 	// Sets default values for this actor's properties
 	APointManager();
@@ -50,5 +57,10 @@ public:
 
 	//Used to end turn for players
 	void EndTurn();
-	
+
+	//Used when player passes
+	void Pass();
+
+	//
+	void EndRound();
 };

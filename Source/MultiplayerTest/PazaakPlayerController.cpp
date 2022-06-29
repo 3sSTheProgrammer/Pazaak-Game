@@ -30,6 +30,20 @@ void APazaakPlayerController::Server_EndTurn_Implementation()
 	PointManager->EndTurn();
 }
 
+bool APazaakPlayerController::Server_Pass_Validate()
+{
+	return true;
+}
+
+void APazaakPlayerController::Server_Pass_Implementation()
+{
+	if (!PointManager)
+	{
+		InitPointManager();
+	}
+	PointManager->Pass();
+}
+
 void APazaakPlayerController::InitPointManager()
 {
 	TArray<AActor*> PointManagers;

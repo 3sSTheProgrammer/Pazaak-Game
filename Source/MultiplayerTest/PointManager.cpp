@@ -29,12 +29,19 @@ void APointManager::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::InitGameInterface, 0.01);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.01);
 
-	// Choose first active player
-	//TODO: implement random generation
-	if (HasAuthority())
+	// Server randomly chooses first active player
+	if(HasAuthority())
 	{
-		ActivePlayer = "Player1";
-	}	
+		if (FMath::RandBool())
+		{
+			ActivePlayer = "Player1";
+		}
+		else
+		{
+			ActivePlayer = "Player2";
+		}
+	}
+	
 }
 
 
@@ -45,6 +52,8 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(APointManager, Player1CardSlots);
 	DOREPLIFETIME(APointManager, Player2CardSlots);
 	DOREPLIFETIME(APointManager, ActivePlayer);
+	DOREPLIFETIME(APointManager, Player1Passed);
+	DOREPLIFETIME(APointManager, Player2Passed);
 	
 }
 
@@ -58,8 +67,11 @@ void APointManager::EndTurn()
 			//TODO: Choose card from pool
 			Player1CardSlots.Add(FMath::RandRange(1, 9));		
 		}
+		if (!Player2Passed)
+		{
+			ActivePlayer = "Player2";
+		}
 		
-		ActivePlayer = "Player2";
 		
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
@@ -71,12 +83,60 @@ void APointManager::EndTurn()
 			//TODO: Choose card from pool
 			Player2CardSlots.Add(FMath::RandRange(1, 9));		
 		}
-
-		ActivePlayer = "Player1";
+		if(!Player1Passed)
+		{
+			ActivePlayer = "Player1";
+		}
 		
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 	}
+}
+
+void APointManager::Pass()
+{
+	if (ActivePlayer == "Player1")
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player1 passed"));
+		Player1Passed = true;
+		if (!Player2Passed)
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Active player is Player2"));
+			ActivePlayer = "Player2";
+		}
+		else
+		{
+			ActivePlayer = "None";
+			EndRound();
+		}
+		
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player2 passed"));
+		Player2Passed = true;
+		if (!Player1Passed)
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Active player is Player1"));
+			ActivePlayer = "Player1";
+		}
+		else
+		{
+			ActivePlayer = "None";
+			EndRound();
+		}
+		
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+	}
+}
+
+void APointManager::EndRound()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Round ended"));
 }
 
 bool APointManager::Multi_UpdateInterface_Validate()
