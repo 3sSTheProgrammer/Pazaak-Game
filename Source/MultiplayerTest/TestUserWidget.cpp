@@ -32,6 +32,11 @@ void UTestUserWidget::NativeConstruct()
 	CardValues.Add(CardSeven);
 	CardValues.Add(CardEight);
 	CardValues.Add(CardNine);
+
+	RoundScoresTextures.Add(TextureRoundScore0);
+	RoundScoresTextures.Add(TextureRoundScore1);
+	RoundScoresTextures.Add(TextureRoundScore2);
+	RoundScoresTextures.Add(TextureRoundScore3);
 	
 	Player1CardSlotsArray.Add(ImgPlayer1Slot1);
 	Player1CardSlotsArray.Add(ImgPlayer1Slot2);
@@ -69,7 +74,7 @@ void UTestUserWidget::NativeConstruct()
 
 void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 	TArray<int32> Player2CardSlots, FString ActivePlayer, int32 Player1TableScore,
-	int32 Player2TableScore )
+	int32 Player2TableScore, int32 Player1RoundsScore, int32 Player2RoundsScore)
 {
 	// Fill card slots
 	//TODO try to optimize
@@ -120,6 +125,17 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 	}
 
 	//TODO Show round scores
+	if (Player1RoundsScore <= 3 && Player2RoundsScore <= 3)
+	{
+		if (ImgPlayer1RoundsScore)
+		{
+			ImgPlayer1RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player1RoundsScore]);
+		}
+		if (ImgPlayer2RoundsScore)
+		{
+			ImgPlayer2RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player2RoundsScore]);
+		}
+	}
 	
 }
 

@@ -72,6 +72,11 @@ protected:
 	UTextBlock* TBPlayer1TableScore;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TBPlayer2TableScore;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* ImgPlayer1RoundsScore;
+	UPROPERTY(meta = (BindWidget))
+	UImage* ImgPlayer2RoundsScore;
 	
 	//Card textures
 	UPROPERTY(EditAnywhere)
@@ -95,8 +100,19 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UTexture2D* CardNine;
 
+	//Round scores textures
+	UPROPERTY(EditAnywhere)
+	UTexture2D* TextureRoundScore0;
+	UPROPERTY(EditAnywhere)
+	UTexture2D* TextureRoundScore1;
+	UPROPERTY(EditAnywhere)
+	UTexture2D* TextureRoundScore2;
+	UPROPERTY(EditAnywhere)
+	UTexture2D* TextureRoundScore3;
+	
 	//Arrays
 	TArray<UTexture2D*> CardValues;
+	TArray<UTexture2D*> RoundScoresTextures;
 	TArray<UImage*> Player1CardSlotsArray;
 	TArray<UImage*> Player2CardSlotsArray;
 
@@ -107,7 +123,7 @@ public:
 	//Called in multicast function to update player interface according to game state
 	UFUNCTION()
 	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer,
-		int32 Player1TableScore, int32 Player2TableScore);
+		int32 Player1TableScore, int32 Player2TableScore, int32 Player1RoundsScore, int32 Player2RoundsScore);
 	
 protected:
 

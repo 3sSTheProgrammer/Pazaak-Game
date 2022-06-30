@@ -45,6 +45,8 @@ protected:
 	UTestUserWidget* GameInterface;
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 	TSubclassOf<UUserWidget> RoundEndWidget;
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+	TSubclassOf<UUserWidget> MatchEndWidget;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -71,6 +73,12 @@ protected:
 	void Multi_ShowRoundResult(const FString& RoundWinner);
 	bool Multi_ShowRoundResult_Validate(const FString& RoundWinner);
 	void Multi_ShowRoundResult_Implementation(const FString& RoundWinner);
+
+	// Multicast creating of match result widget 
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_ShowMatchResult(const FString& RoundWinner);
+	bool Multi_ShowMatchResult_Validate(const FString& RoundWinner);
+	void Multi_ShowMatchResult_Implementation(const FString& RoundWinner);
 public:	
 
 	// Defines replicated params

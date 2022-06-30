@@ -3,8 +3,8 @@
 
 #include "PointManager.h"
 
+#include "GameEndWidget.h"
 #include "RoundEndWidget.h"
-#include "TestCharacter.h"
 #include "TestUserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -200,22 +200,27 @@ void APointManager::EndRound()
 	{
 		Player2RoundsScore += 1;
 	}
-	else
-	{
-		Player1RoundsScore += 1;
-		Player2RoundsScore += 1;
-	}
 
 	if (Player1RoundsScore == 3 || Player2RoundsScore == 3)
 	{
+		FString MatchWinner;
+		if (Player1RoundsScore == 3)
+		{
+			MatchWinner = "Player1";
+		}
+		else
+		{
+			MatchWinner = "Player2";
+		}
 		//TODO End match
+		Multi_ShowMatchResult(MatchWinner);
 	}
 	else
 	{
 		//Show winner
 		Multi_ShowRoundResult(RoundWinner);
 		
-		//TODO After a short time restart round
+		//After a short time restart round
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::ResetGame, 3);
 	}
@@ -259,7 +264,7 @@ void APointManager::Multi_UpdateInterface_Implementation()
 		InitGameInterface();
 	}
 	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer,
-		Player1TableScore, Player2TableScore);
+		Player1TableScore, Player2TableScore, Player1RoundsScore, Player2RoundsScore);
 }
 
 bool APointManager::Multi_ShowRoundResult_Validate(const FString& RoundWinner)
@@ -273,6 +278,21 @@ void APointManager::Multi_ShowRoundResult_Implementation(const FString& RoundWin
 	if (URoundEndWidget* CreatedWidget = Cast<URoundEndWidget>(Widget))
 	{
 		CreatedWidget->SetRoundResult(RoundWinner);
+		CreatedWidget->AddToViewport();
+	}
+}
+
+bool APointManager::Multi_ShowMatchResult_Validate(const FString& RoundWinner)
+{
+	return true;
+}
+
+void APointManager::Multi_ShowMatchResult_Implementation(const FString& RoundWinner)
+{
+	UUserWidget* Widget = CreateWidget(GetWorld(), MatchEndWidget);
+	if (UGameEndWidget* CreatedWidget = Cast<UGameEndWidget>(Widget))
+	{
+		CreatedWidget->SetMatchResult(RoundWinner);
 		CreatedWidget->AddToViewport();
 	}
 }
