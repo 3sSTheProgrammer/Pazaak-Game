@@ -3,6 +3,7 @@
 
 #include "PointManager.h"
 
+#include "RoundEndWidget.h"
 #include "TestCharacter.h"
 #include "TestUserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -40,6 +41,7 @@ void APointManager::BeginPlay()
 		{
 			ActivePlayer = "Player2";
 		}
+		PlayerBeganPreviousRound = ActivePlayer;
 	}
 	
 }
@@ -56,6 +58,8 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(APointManager, Player2Passed);
 	DOREPLIFETIME(APointManager, Player1TableScore);
 	DOREPLIFETIME(APointManager, Player2TableScore);
+	DOREPLIFETIME(APointManager, Player1RoundsScore);
+	DOREPLIFETIME(APointManager, Player2RoundsScore);
 }
 
 
@@ -114,54 +118,132 @@ void APointManager::EndTurn()
 
 void APointManager::Pass()
 {
+	//Initialize temporary variables
+	bool OtherPlayerPassed;
+	FString OtherPlayer;
+	int32 PlayerTableScore;
 	if (ActivePlayer == "Player1")
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player1 passed"));
 		Player1Passed = true;
-		if (!Player2Passed)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Active player is Player2"));
-			ActivePlayer = "Player2";
-		}
-		else
-		{
-			ActivePlayer = "None";
-			EndRound();
-		}
-		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
-
+		PlayerTableScore = Player1TableScore;
+		OtherPlayer = "Player2";
+		OtherPlayerPassed = Player2Passed;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player2 passed"));
 		Player2Passed = true;
-		if (!Player1Passed)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Active player is Player1"));
-			ActivePlayer = "Player1";
-		}
-		else
-		{
-			ActivePlayer = "None";
-			EndRound();
-		}
-		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+		PlayerTableScore = Player2TableScore;
+		OtherPlayer = "Player1";
+		OtherPlayerPassed = Player1Passed;
 	}
+
+	//If player score >= 20 or other player also passed round ends
+	if (PlayerTableScore >= 20 || OtherPlayerPassed)
+	{
+		ActivePlayer = "None";
+		EndRound();
+	}
+	//Otherwise turn goes to other player 
+	else
+	{
+		ActivePlayer = OtherPlayer;
+	}
+	
+	//Update players interfaces 
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 }
 
 void APointManager::EndRound()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Round ended"));
 
-	//TODO Change score
+	//Identify winner
+	FString RoundWinner;
+	if (Player1TableScore > 20)
+	{
+		RoundWinner = "Player2";
+	}
+	else if (Player2TableScore > 20)
+	{
+		RoundWinner = "Player1";
+	}
+	else if (Player1TableScore == 20)
+	{
+		RoundWinner = "Player1";
+	}
+	else if (Player2TableScore == 20)
+	{
+		RoundWinner = "Player2";
+	}
+	else if (Player1TableScore == Player2TableScore)
+	{
+		RoundWinner = "Draw";
+	}
+	else if (Player1TableScore > Player2TableScore)
+	{
+		RoundWinner = "Player1";
+	}
+	else
+	{
+		RoundWinner = "Player2";
+	}
 
-	//TODO Show winner
+	UE_LOG(LogTemp, Warning, TEXT("Winner is %s"), *RoundWinner);
+
+	//Change rounds score
+	if (RoundWinner == "Player1")
+	{
+		Player1RoundsScore += 1;
+	}
+	else if (RoundWinner == "Player2")
+	{
+		Player2RoundsScore += 1;
+	}
+	else
+	{
+		Player1RoundsScore += 1;
+		Player2RoundsScore += 1;
+	}
+
+	if (Player1RoundsScore == 3 || Player2RoundsScore == 3)
+	{
+		//TODO End match
+	}
+	else
+	{
+		//Show winner
+		Multi_ShowRoundResult(RoundWinner);
+		
+		//TODO After a short time restart round
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::ResetGame, 3);
+	}
 	
-	//TODO After a short time restart round
+	
+}
+
+void APointManager::ResetGame()
+{
+	Player1CardSlots = {};
+	Player2CardSlots = {};
+	Player1TableScore = 0;
+	Player2TableScore = 0;
+	Player1Passed = false;
+	Player2Passed = false;
+	
+	// Remember who began previous round and change to another player
+	if (PlayerBeganPreviousRound == "Player1")
+	{
+		ActivePlayer = "Player2";
+	}
+	else
+	{
+		ActivePlayer = "Player1";
+	}
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 	
 }
 
@@ -178,6 +260,21 @@ void APointManager::Multi_UpdateInterface_Implementation()
 	}
 	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer,
 		Player1TableScore, Player2TableScore);
+}
+
+bool APointManager::Multi_ShowRoundResult_Validate(const FString& RoundWinner)
+{
+	return true;
+}
+
+void APointManager::Multi_ShowRoundResult_Implementation(const FString& RoundWinner)
+{
+	UUserWidget* Widget = CreateWidget(GetWorld(), RoundEndWidget);
+	if (URoundEndWidget* CreatedWidget = Cast<URoundEndWidget>(Widget))
+	{
+		CreatedWidget->SetRoundResult(RoundWinner);
+		CreatedWidget->AddToViewport();
+	}
 }
 
 void APointManager::InitGameInterface()
@@ -201,14 +298,14 @@ void APointManager::GetCardFromDeck(FString Player)
 		const int32 CardValue = FMath::RandRange(1, 9);
 		Player1TableScore += CardValue;
 		Player1CardSlots.Add(CardValue);
-		UE_LOG(LogTemp, Warning, TEXT("Player1 score: %d"), Player1TableScore);
+		//UE_LOG(LogTemp, Warning, TEXT("Player1 score: %d"), Player1TableScore);
 	}
 	else
 	{
 		const int32 CardValue = FMath::RandRange(1, 9);
 		Player2TableScore += CardValue;
 		Player2CardSlots.Add(CardValue);
-		UE_LOG(LogTemp, Warning, TEXT("Player2 score: %d"), Player2TableScore);
+		//UE_LOG(LogTemp, Warning, TEXT("Player2 score: %d"), Player2TableScore);
 	}
 	
 }

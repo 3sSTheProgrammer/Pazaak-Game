@@ -73,16 +73,31 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 {
 	// Fill card slots
 	//TODO try to optimize
-	for (int i = 0; i < Player1CardSlots.Num(); ++i)
-	{
-		FillSlot(Player1CardSlotsArray[i], Player1CardSlots[i]);
-	}
-	for (int i = 0; i < Player2CardSlots.Num(); ++i)
-	{
-		FillSlot(Player2CardSlotsArray[i], Player2CardSlots[i]);
-	}
 
-	//TODO: Show total scores
+	if (Player1CardSlots.Num() == 0 && Player2CardSlots.Num() == 0)
+	{
+		for (int i = 0; i < Player1CardSlotsArray.Num(); ++i)
+		{
+			FillSlot(Player1CardSlotsArray[i], 0);
+		}
+		for (int i = 0; i < Player2CardSlotsArray.Num(); ++i)
+		{
+			FillSlot(Player2CardSlotsArray[i], 0);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < Player1CardSlots.Num(); ++i)
+		{
+			FillSlot(Player1CardSlotsArray[i], Player1CardSlots[i]);
+		}
+		for (int i = 0; i < Player2CardSlots.Num(); ++i)
+		{
+			FillSlot(Player2CardSlotsArray[i], Player2CardSlots[i]);
+		}
+	}
+	
+	//Show total scores
 	if (TBPlayer1TableScore)
 	{
 		TBPlayer1TableScore->SetText(FText::AsNumber(Player1TableScore));
@@ -91,6 +106,7 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 	{
 		TBPlayer2TableScore->SetText(FText::AsNumber(Player2TableScore));
 	}
+	
 	//Enable/disable buttons
 	if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
 	{
@@ -102,11 +118,14 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 		ButtonEndTurn->SetIsEnabled(false);
 		ButtonPass->SetIsEnabled(false);
 	}
+
+	//TODO Show round scores
+	
 }
 
 void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 {
-	if (CardSlot && CardValue)
+	if (CardSlot) // && CardValue
 	{
 		CardSlot->SetBrushFromTexture(CardValues[CardValue]);
 	}

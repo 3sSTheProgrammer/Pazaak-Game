@@ -24,18 +24,27 @@ protected:
 	int32 Player1TableScore{ 0 };
 	UPROPERTY(Replicated)
 	int32 Player2TableScore{ 0 };
-	
-	UPROPERTY()
-	UTestUserWidget* GameInterface;
+	UPROPERTY(Replicated)
+	int32 Player1RoundsScore{ 0 };
+	UPROPERTY(Replicated)
+	int32 Player2RoundsScore{ 0 };
 
 	UPROPERTY(Replicated)
 	FString ActivePlayer;
-
+	UPROPERTY()
+	FString PlayerBeganPreviousRound;
+	
 	//Player passed statuses
 	UPROPERTY(Replicated)
 	bool Player1Passed{ false };
 	UPROPERTY(Replicated)
 	bool Player2Passed{ false };
+
+	//Widgets
+	UPROPERTY()
+	UTestUserWidget* GameInterface;
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+	TSubclassOf<UUserWidget> RoundEndWidget;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -50,12 +59,18 @@ protected:
 
 	//
 	void GetCardFromDeck(FString Player);
+
 	// Multicast update of interface after changes in game state
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_UpdateInterface();
 	bool Multi_UpdateInterface_Validate();
 	void Multi_UpdateInterface_Implementation();
-		
+
+	// Multicast creating of round result widget 
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_ShowRoundResult(const FString& RoundWinner);
+	bool Multi_ShowRoundResult_Validate(const FString& RoundWinner);
+	void Multi_ShowRoundResult_Implementation(const FString& RoundWinner);
 public:	
 
 	// Defines replicated params
@@ -69,4 +84,7 @@ public:
 
 	//Makes round end
 	void EndRound();
+
+	//Resets game state to start a new round
+	void ResetGame();
 };
