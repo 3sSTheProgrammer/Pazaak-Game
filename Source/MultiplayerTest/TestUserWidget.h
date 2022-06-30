@@ -8,6 +8,7 @@
 
 class UButton;
 class UImage;
+class UTextBlock;
 class APazaakPlayerController;
 /**
  * 
@@ -67,6 +68,11 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UImage* ImgPlayer2Slot9;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TBPlayer1TableScore;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TBPlayer2TableScore;
+	
 	//Card textures
 	UPROPERTY(EditAnywhere)
 	UTexture2D* CardEmpty;
@@ -100,7 +106,8 @@ public:
 
 	//Called in multicast function to update player interface according to game state
 	UFUNCTION()
-	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer);
+	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer,
+		int32 Player1TableScore, int32 Player2TableScore);
 	
 protected:
 

@@ -54,43 +54,62 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(APointManager, ActivePlayer);
 	DOREPLIFETIME(APointManager, Player1Passed);
 	DOREPLIFETIME(APointManager, Player2Passed);
-	
+	DOREPLIFETIME(APointManager, Player1TableScore);
+	DOREPLIFETIME(APointManager, Player2TableScore);
 }
 
 
 void APointManager::EndTurn()
 {
+	// Initialize temporary variables 
+	TArray<int32> PlayerCardSlots;
+	int32 PlayerTableScore;
+	FString AnotherPlayer;
+	bool AnotherPlayerPassed;
 	if (ActivePlayer == "Player1")
 	{
-		if (Player1CardSlots.Num() < 9)
-		{
-			//TODO: Choose card from pool
-			Player1CardSlots.Add(FMath::RandRange(1, 9));		
-		}
-		if (!Player2Passed)
-		{
-			ActivePlayer = "Player2";
-		}
+		PlayerCardSlots = Player1CardSlots;
+		PlayerTableScore = Player1TableScore;
+		AnotherPlayer = "Player2";
+		AnotherPlayerPassed = Player2Passed;
 		
-		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 	}
 	else
 	{
-		if (Player2CardSlots.Num() < 9)
-		{
-			//TODO: Choose card from pool
-			Player2CardSlots.Add(FMath::RandRange(1, 9));		
-		}
-		if(!Player1Passed)
-		{
-			ActivePlayer = "Player1";
-		}
-		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+		PlayerCardSlots = Player2CardSlots;
+		PlayerTableScore = Player2TableScore;
+		AnotherPlayer = "Player1";
+		AnotherPlayerPassed = Player1Passed;
 	}
+
+	//Add card from deck to slot and recalculate PlayerTableScore
+	if (PlayerCardSlots.Num() < 9 && PlayerTableScore < 20)
+	{
+		GetCardFromDeck(ActivePlayer);
+		if (ActivePlayer == "Player1")
+		{
+			PlayerTableScore = Player1TableScore;
+		}
+		else
+		{
+			PlayerTableScore = Player2TableScore;
+		}
+	}
+	// If player score >= 20 he automatically passes
+	if (PlayerTableScore >= 20)
+	{
+		Pass();
+	}
+	//Turn goes to another player if he hasn't passed already
+	else if (!AnotherPlayerPassed)
+	{
+		ActivePlayer = AnotherPlayer;
+	}
+
+	//Update players interfaces 
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
+	
 }
 
 void APointManager::Pass()
@@ -137,6 +156,13 @@ void APointManager::Pass()
 void APointManager::EndRound()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Round ended"));
+
+	//TODO Change score
+
+	//TODO Show winner
+	
+	//TODO After a short time restart round
+	
 }
 
 bool APointManager::Multi_UpdateInterface_Validate()
@@ -150,7 +176,8 @@ void APointManager::Multi_UpdateInterface_Implementation()
 	{
 		InitGameInterface();
 	}
-	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer);
+	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer,
+		Player1TableScore, Player2TableScore);
 }
 
 void APointManager::InitGameInterface()
@@ -164,6 +191,26 @@ void APointManager::InitGameInterface()
 			GameInterface = Widget;
 		}
 	}
+}
+
+void APointManager::GetCardFromDeck(FString Player)
+{
+	//TODO implement player decks
+	if (Player == "Player1")
+	{
+		const int32 CardValue = FMath::RandRange(1, 9);
+		Player1TableScore += CardValue;
+		Player1CardSlots.Add(CardValue);
+		UE_LOG(LogTemp, Warning, TEXT("Player1 score: %d"), Player1TableScore);
+	}
+	else
+	{
+		const int32 CardValue = FMath::RandRange(1, 9);
+		Player2TableScore += CardValue;
+		Player2CardSlots.Add(CardValue);
+		UE_LOG(LogTemp, Warning, TEXT("Player2 score: %d"), Player2TableScore);
+	}
+	
 }
 
 // old way of increasing points (for reference)

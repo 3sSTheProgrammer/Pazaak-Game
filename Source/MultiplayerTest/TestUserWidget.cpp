@@ -68,9 +68,11 @@ void UTestUserWidget::NativeConstruct()
 }
 
 void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
-	TArray<int32> Player2CardSlots, FString ActivePlayer)
+	TArray<int32> Player2CardSlots, FString ActivePlayer, int32 Player1TableScore,
+	int32 Player2TableScore )
 {
 	// Fill card slots
+	//TODO try to optimize
 	for (int i = 0; i < Player1CardSlots.Num(); ++i)
 	{
 		FillSlot(Player1CardSlotsArray[i], Player1CardSlots[i]);
@@ -81,7 +83,14 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 	}
 
 	//TODO: Show total scores
-
+	if (TBPlayer1TableScore)
+	{
+		TBPlayer1TableScore->SetText(FText::AsNumber(Player1TableScore));
+	}
+	if (TBPlayer2TableScore)
+	{
+		TBPlayer2TableScore->SetText(FText::AsNumber(Player2TableScore));
+	}
 	//Enable/disable buttons
 	if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
 	{

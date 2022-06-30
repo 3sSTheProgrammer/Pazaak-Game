@@ -20,6 +20,10 @@ protected:
 	TArray<int32> Player1CardSlots = {};
 	UPROPERTY(Replicated)
 	TArray<int32> Player2CardSlots = {};
+	UPROPERTY(Replicated)
+	int32 Player1TableScore{ 0 };
+	UPROPERTY(Replicated)
+	int32 Player2TableScore{ 0 };
 	
 	UPROPERTY()
 	UTestUserWidget* GameInterface;
@@ -44,6 +48,8 @@ protected:
 	// Finds game interface
 	void InitGameInterface();
 
+	//
+	void GetCardFromDeck(FString Player);
 	// Multicast update of interface after changes in game state
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_UpdateInterface();
@@ -61,6 +67,6 @@ public:
 	//Used when player passes
 	void Pass();
 
-	//
+	//Makes round end
 	void EndRound();
 };
