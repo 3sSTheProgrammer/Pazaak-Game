@@ -1,3 +1,5 @@
-# MultiplayerTest
+# Pazaak-Game
 
-Developed with Unreal Engine 4
+This project is a multiplayer variation of game called Pazaak from Star Wars Knights of the Old Republic
+
+The project is on the stage of active development, but a lot of things are not ready yet
