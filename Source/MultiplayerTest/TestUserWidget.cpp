@@ -78,7 +78,116 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 {
 	// Fill card slots
 	//TODO try to optimize
+	//UE_LOG(LogTemp, Warning, TEXT("Updating interface whatever"));
+	// if (Player1CardSlots.Num() == 0 && Player2CardSlots.Num() == 0)
+	// {
+	// 	for (int i = 0; i < Player1CardSlotsArray.Num(); ++i)
+	// 	{
+	// 		FillSlot(Player1CardSlotsArray[i], 0);
+	// 	}
+	// 	for (int i = 0; i < Player2CardSlotsArray.Num(); ++i)
+	// 	{
+	// 		FillSlot(Player2CardSlotsArray[i], 0);
+	// 	}
+	// }
+	// else
+	// {
+	// 	for (int i = 0; i < Player1CardSlots.Num(); ++i)
+	// 	{
+	// 		FillSlot(Player1CardSlotsArray[i], Player1CardSlots[i]);
+	// 	}
+	// 	for (int i = 0; i < Player2CardSlots.Num(); ++i)
+	// 	{
+	// 		FillSlot(Player2CardSlotsArray[i], Player2CardSlots[i]);
+	// 	}
+	// }
+	
+	//Show total scores
+	// if (TBPlayer1TableScore)
+	// {
+	// 	TBPlayer1TableScore->SetText(FText::AsNumber(Player1TableScore));
+	// }
+	// if (TBPlayer2TableScore)
+	// {
+	// 	TBPlayer2TableScore->SetText(FText::AsNumber(Player2TableScore));
+	// }
+	
+	//Enable/disable buttons
+	//UE_LOG(LogTemp, Warning, TEXT("I am %s; Active player is %s"), *PlayerName, *ActivePlayer);
+	// if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
+	// {
+	// 	//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
+	// 	ButtonEndTurn->SetIsEnabled(true);
+	// 	ButtonPass->SetIsEnabled(true);
+	// }
+	// else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled()) 
+	// {
+	// 	//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
+	// 	ButtonEndTurn->SetIsEnabled(false);
+	// 	ButtonPass->SetIsEnabled(false);
+	// }
 
+	//Show round scores
+	// if (Player1RoundsScore <= 3 && Player2RoundsScore <= 3)
+	// {
+	// 	if (ImgPlayer1RoundsScore)
+	// 	{
+	// 		ImgPlayer1RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player1RoundsScore]);
+	// 	}
+	// 	if (ImgPlayer2RoundsScore)
+	// 	{
+	// 		ImgPlayer2RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player2RoundsScore]);
+	// 	}
+	// }
+	
+}
+
+void UTestUserWidget::UpdateTableScores(int32 Player1TableScore, int32 Player2TableScore)
+{
+	if (TBPlayer1TableScore)
+	{
+		TBPlayer1TableScore->SetText(FText::AsNumber(Player1TableScore));
+	}
+	if (TBPlayer2TableScore)
+	{
+		TBPlayer2TableScore->SetText(FText::AsNumber(Player2TableScore));
+	}
+}
+
+void UTestUserWidget::UpdateButtons(FString ActivePlayer)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("I am %s, Active player is %s"), *PlayerName, *ActivePlayer);
+	if (ActivePlayer == PlayerName && !(ButtonEndTurn->GetIsEnabled()))
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
+		ButtonEndTurn->SetIsEnabled(true);
+		ButtonPass->SetIsEnabled(true);
+	}
+	else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled())
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
+		ButtonEndTurn->SetIsEnabled(false);
+		ButtonPass->SetIsEnabled(false);
+	}
+}
+
+void UTestUserWidget::UpdateRoundScores(int32 Player1RoundsScore, int32 Player2RoundsScore)
+{
+	if (Player1RoundsScore <= 3 && Player2RoundsScore <= 3)
+	{
+		if (ImgPlayer1RoundsScore)
+		{
+			ImgPlayer1RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player1RoundsScore]);
+		}
+		if (ImgPlayer2RoundsScore)
+		{
+			ImgPlayer2RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player2RoundsScore]);
+		}
+	}
+}
+
+void UTestUserWidget::UpdatePlayersCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots)
+{
 	if (Player1CardSlots.Num() == 0 && Player2CardSlots.Num() == 0)
 	{
 		for (int i = 0; i < Player1CardSlotsArray.Num(); ++i)
@@ -101,47 +210,11 @@ void UTestUserWidget::UpdatePlayerInterface(TArray<int32> Player1CardSlots,
 			FillSlot(Player2CardSlotsArray[i], Player2CardSlots[i]);
 		}
 	}
-	
-	//Show total scores
-	if (TBPlayer1TableScore)
-	{
-		TBPlayer1TableScore->SetText(FText::AsNumber(Player1TableScore));
-	}
-	if (TBPlayer2TableScore)
-	{
-		TBPlayer2TableScore->SetText(FText::AsNumber(Player2TableScore));
-	}
-	
-	//Enable/disable buttons
-	if (ActivePlayer == PlayerName && !ButtonEndTurn->GetIsEnabled())
-	{
-		ButtonEndTurn->SetIsEnabled(true);
-		ButtonPass->SetIsEnabled(true);
-	}
-	else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled()) 
-	{
-		ButtonEndTurn->SetIsEnabled(false);
-		ButtonPass->SetIsEnabled(false);
-	}
-
-	//TODO Show round scores
-	if (Player1RoundsScore <= 3 && Player2RoundsScore <= 3)
-	{
-		if (ImgPlayer1RoundsScore)
-		{
-			ImgPlayer1RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player1RoundsScore]);
-		}
-		if (ImgPlayer2RoundsScore)
-		{
-			ImgPlayer2RoundsScore->SetBrushFromTexture(RoundScoresTextures[Player2RoundsScore]);
-		}
-	}
-	
 }
 
 void UTestUserWidget::FillSlot(UImage* CardSlot, int32 CardValue)
 {
-	if (CardSlot) // && CardValue
+	if (CardSlot)
 	{
 		CardSlot->SetBrushFromTexture(CardValues[CardValue]);
 	}

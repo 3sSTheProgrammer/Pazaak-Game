@@ -124,7 +124,18 @@ public:
 	UFUNCTION()
 	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer,
 		int32 Player1TableScore, int32 Player2TableScore, int32 Player1RoundsScore, int32 Player2RoundsScore);
-	
+
+	UFUNCTION()
+	void UpdateTableScores(int32 Player1TableScore, int32 Player2TableScore);
+
+	UFUNCTION()
+	void UpdateButtons(FString ActivePlayer);
+
+	UFUNCTION()
+	void UpdateRoundScores(int32 Player1RoundsScore, int32 Player2RoundsScore);
+
+	UFUNCTION()
+	void UpdatePlayersCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
 protected:
 
 	//Used in UpdatePlayerInterface
@@ -148,3 +159,5 @@ protected:
 	
 	
 };
+
+
