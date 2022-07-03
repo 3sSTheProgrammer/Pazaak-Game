@@ -64,11 +64,11 @@ void UTestUserWidget::NativeConstruct()
 	if (GetWorld()->IsServer())
 	{
 		//TODO: Make constants
-		PlayerName = "Player1";
+		PlayerName = 1;
 	}
 	else
 	{
-		PlayerName = "Player2";
+		PlayerName = 2;
 	}
 }
 
@@ -154,7 +154,7 @@ void UTestUserWidget::UpdateTableScores(int32 Player1TableScore, int32 Player2Ta
 	}
 }
 
-void UTestUserWidget::UpdateButtons(FString ActivePlayer)
+void UTestUserWidget::UpdateButtons(int32 ActivePlayer)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I am %s, Active player is %s"), *PlayerName, *ActivePlayer);
 	if (ActivePlayer == PlayerName && !(ButtonEndTurn->GetIsEnabled()))
@@ -226,7 +226,15 @@ void UTestUserWidget::ButtonEndTurnOnClick()
 	{
 		InitPlayerController();
 	}
-	PazaakPlayerController->Server_EndTurn();
+	if (GetWorld()->IsServer())
+	{
+		PazaakPlayerController->EndTurn();
+	}
+	else
+	{
+		PazaakPlayerController->Server_EndTurn();
+	}
+	
 }
 
 void UTestUserWidget::ButtonPassOnClick()
@@ -235,7 +243,14 @@ void UTestUserWidget::ButtonPassOnClick()
 	{
 		InitPlayerController();
 	}
-	PazaakPlayerController->Server_Pass();
+	if (GetWorld()->IsServer())
+	{
+		PazaakPlayerController->Pass();
+	}
+	else
+	{
+		PazaakPlayerController->Server_Pass();
+	}
 }
 
 void UTestUserWidget::InitPlayerController()

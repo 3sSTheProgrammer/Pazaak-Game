@@ -23,6 +23,6 @@ protected:
 
 public:
 	UFUNCTION()
-	void SetRoundResult(FString RoundWinner);
+	void SetRoundResult(int32 RoundWinner);
 	
 };

@@ -13,22 +13,22 @@ void URoundEndWidget::NativeConstruct()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &URoundEndWidget::RemoveFromParent, 3);
 }
 
-void URoundEndWidget::SetRoundResult(FString RoundWinner)
+void URoundEndWidget::SetRoundResult(int32 RoundWinner)
 {
 	//Identify self name
-	FString PlayerName;
+	int32 PlayerName;
 	if (GetWorld()->IsServer())
 	{
-		PlayerName = "Player1";
+		PlayerName = 1;
 	}
 	else
 	{
-		PlayerName = "Player2";
+		PlayerName = 2;
 	}
 
 	//Select result text
 	FString ResultMessage;
-	if (RoundWinner == "Draw")
+	if (RoundWinner == 0)
 	{
 		ResultMessage = "Draw";
 	}

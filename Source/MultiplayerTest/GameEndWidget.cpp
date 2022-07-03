@@ -14,17 +14,17 @@ void UGameEndWidget::NativeConstruct()
 	//TODO bind buttons
 }
 
-void UGameEndWidget::SetMatchResult(FString MatchWinner)
+void UGameEndWidget::SetMatchResult(int32 MatchWinner)
 {
 	//Identify self name
-	FString PlayerName;
+	int32 PlayerName;
 	if (GetWorld()->IsServer())
 	{
-		PlayerName = "Player1";
+		PlayerName = 1;
 	}
 	else
 	{
-		PlayerName = "Player2";
+		PlayerName = 2;
 	}
 
 	//Select result text

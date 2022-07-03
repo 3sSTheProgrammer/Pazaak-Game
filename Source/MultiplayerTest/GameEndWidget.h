@@ -28,6 +28,6 @@ protected:
 
 public:
 	UFUNCTION()
-	void SetMatchResult(FString MatchWinner);
+	void SetMatchResult(int32 MatchWinner);
 	
 };

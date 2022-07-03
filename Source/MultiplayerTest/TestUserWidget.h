@@ -116,7 +116,7 @@ protected:
 	TArray<UImage*> Player1CardSlotsArray;
 	TArray<UImage*> Player2CardSlotsArray;
 
-	FString PlayerName;
+	int32 PlayerName;
 public:
 	virtual void NativeConstruct() override;
 
@@ -129,7 +129,7 @@ public:
 	void UpdateTableScores(int32 Player1TableScore, int32 Player2TableScore);
 
 	UFUNCTION()
-	void UpdateButtons(FString ActivePlayer);
+	void UpdateButtons(int32 ActivePlayer);
 
 	UFUNCTION()
 	void UpdateRoundScores(int32 Player1RoundsScore, int32 Player2RoundsScore);

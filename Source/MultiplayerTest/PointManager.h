@@ -8,6 +8,17 @@
 
 class UTestUserWidget;
 
+// USTRUCT()
+// struct FPlayerState
+// {
+// 	GENERATED_BODY()
+// 	
+// 	TArray<int32> PlayerCardSlots = {};
+// 	int32 PlayerTableScore{ 0 };
+// 	int32 PlayerRoundsScore{ 0 };
+// 	bool PlayerPassed{ false };
+// };
+
 UCLASS()
 class MULTIPLAYERTEST_API APointManager : public AActor
 {
@@ -15,6 +26,13 @@ class MULTIPLAYERTEST_API APointManager : public AActor
 
 protected:
 
+	// UPROPERTY(Replicated)
+	// FPlayerState Player1;
+	// UPROPERTY(Replicated)
+	// FPlayerState Player2;
+	// UPROPERTY(Replicated)
+	// FPlayerState* ActivePlayer;
+	
 	// Current player cards
 	UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
 	TArray<int32> Player1CardSlots = {};
@@ -30,12 +48,9 @@ protected:
 	int32 Player2RoundsScore{ 0 };
 
 	UPROPERTY(ReplicatedUsing = OnRep_ActivePlayerUpdated)
-	FString ActivePlayer;
+	int32 ActivePlayer;
 	UPROPERTY()
-	FString PlayerBeganPreviousRound;
-	
-	UPROPERTY(Replicated)
-	int32 ActivePlayerInt;
+	int32 PlayerBeganPreviousRound;
 	
 	//Player passed statuses
 	UPROPERTY(Replicated)
@@ -55,7 +70,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 	TSubclassOf<UUserWidget> MatchEndWidget;
 	
-public:	
+public:
 	// Sets default values for this actor's properties
 	APointManager();
 
@@ -69,7 +84,7 @@ protected:
 	void InitGameInterface();
 
 	//
-	void GetCardFromDeck(FString Player);
+	void GetCardFromDeck(int32 Player);
 	
 	// // Multicast update of interface after changes in game state
 	// UFUNCTION(NetMulticast, Reliable, WithValidation)
@@ -79,15 +94,15 @@ protected:
 
 	// Multicast creating of round result widget 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_ShowRoundResult(const FString& RoundWinner);
-	bool Multi_ShowRoundResult_Validate(const FString& RoundWinner);
-	void Multi_ShowRoundResult_Implementation(const FString& RoundWinner);
+	void Multi_ShowRoundResult(int32 RoundWinner);
+	bool Multi_ShowRoundResult_Validate(int32 RoundWinner);
+	void Multi_ShowRoundResult_Implementation(int32 RoundWinner);
 
 	// Multicast creating of match result widget 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_ShowMatchResult(const FString& RoundWinner);
-	bool Multi_ShowMatchResult_Validate(const FString& RoundWinner);
-	void Multi_ShowMatchResult_Implementation(const FString& RoundWinner);
+	void Multi_ShowMatchResult(int32 MatchWinner);
+	bool Multi_ShowMatchResult_Validate(int32 MatchWinner);
+	void Multi_ShowMatchResult_Implementation(int32 MatchWinner);
 
 	UFUNCTION()
 	void OnRep_PlayersTableScoreUpdated();

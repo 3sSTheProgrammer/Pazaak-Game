@@ -28,11 +28,17 @@ public:
 	bool Server_EndTurn_Validate();
 	void Server_EndTurn_Implementation();
 
+	UFUNCTION()
+	void EndTurn();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Pass();
 	bool Server_Pass_Validate();
 	void Server_Pass_Implementation();
 
+	UFUNCTION()
+	void Pass();
+	
 protected:
 	//Finds point manager in the world
 	void InitPointManager();
