@@ -157,18 +157,19 @@ void UTestUserWidget::UpdateTableScores(int32 Player1TableScore, int32 Player2Ta
 void UTestUserWidget::UpdateButtons(int32 ActivePlayer)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I am %s, Active player is %s"), *PlayerName, *ActivePlayer);
-	if (ActivePlayer == PlayerName && !(ButtonEndTurn->GetIsEnabled()))
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
-		ButtonEndTurn->SetIsEnabled(true);
-		ButtonPass->SetIsEnabled(true);
-	}
-	else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled())
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
-		ButtonEndTurn->SetIsEnabled(false);
-		ButtonPass->SetIsEnabled(false);
-	}
+		if (ActivePlayer == PlayerName && !(ButtonEndTurn->GetIsEnabled()))
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Enabling buttons"));
+			ButtonEndTurn->SetIsEnabled(true);
+			ButtonPass->SetIsEnabled(true);
+		}
+		else if (ActivePlayer != PlayerName && ButtonEndTurn->GetIsEnabled())
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Disabling buttons"));
+			ButtonEndTurn->SetIsEnabled(false);
+			ButtonPass->SetIsEnabled(false);
+		}
+	
 }
 
 void UTestUserWidget::UpdateRoundScores(int32 Player1RoundsScore, int32 Player2RoundsScore)

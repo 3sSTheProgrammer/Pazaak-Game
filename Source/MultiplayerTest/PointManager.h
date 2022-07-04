@@ -8,17 +8,23 @@
 
 class UTestUserWidget;
 
-// USTRUCT()
-// struct FPlayerState
-// {
-// 	GENERATED_BODY()
-// 	
-// 	TArray<int32> PlayerCardSlots = {};
-// 	int32 PlayerTableScore{ 0 };
-// 	int32 PlayerRoundsScore{ 0 };
-// 	bool PlayerPassed{ false };
-// };
+USTRUCT()
+struct FPMPlayerState
+{
+	GENERATED_BODY()
+	
+	TArray<int32> PlayerCardSlots = {};
+	int32 PlayerTableScore{ 0 };
+	int32 PlayerRoundsScore{ 0 };
+	bool PlayerPassed{ false };
+};
 
+UENUM()
+enum EActivePlayerEnum
+{
+	Player1 = 0,
+	Player2 = 1
+};
 UCLASS()
 class MULTIPLAYERTEST_API APointManager : public AActor
 {
@@ -26,12 +32,14 @@ class MULTIPLAYERTEST_API APointManager : public AActor
 
 protected:
 
-	// UPROPERTY(Replicated)
-	// FPlayerState Player1;
-	// UPROPERTY(Replicated)
-	// FPlayerState Player2;
-	// UPROPERTY(Replicated)
-	// FPlayerState* ActivePlayer;
+	UPROPERTY(Replicated)
+	FPMPlayerState Player1;
+	UPROPERTY(Replicated)
+	FPMPlayerState Player2;
+	UPROPERTY(Replicated)
+	FPMPlayerState TestActivePlayer;
+	
+	TMap<int32, FPMPlayerState*> ActivePlayerMap;
 	
 	// Current player cards
 	UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
@@ -46,7 +54,7 @@ protected:
 	int32 Player1RoundsScore{ 0 };
 	UPROPERTY(ReplicatedUsing = OnRep_PlayersRoundsScoresUpdated)
 	int32 Player2RoundsScore{ 0 };
-
+	
 	UPROPERTY(ReplicatedUsing = OnRep_ActivePlayerUpdated)
 	int32 ActivePlayer;
 	UPROPERTY()

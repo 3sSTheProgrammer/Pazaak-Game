@@ -33,12 +33,24 @@ APointManager::APointManager()
 		}
 		PlayerBeganPreviousRound = ActivePlayer;
 	}
+
+	if (HasAuthority())
+	{
+		ActivePlayerMap.Add(EActivePlayerEnum::Player1, &Player1);
+		ActivePlayerMap.Add(EActivePlayerEnum::Player2, &Player2); 
+	}
+	TestActivePlayer = *ActivePlayerMap[EActivePlayerEnum::Player1];
+	
+	//UE_LOG(LogTemp, Warning, TEXT("TEST %d"), TestActivePlayer.PlayerPassed);
+	
 }
 
 // Called when the game starts or when spawned
 void APointManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("Begin Play"));
 	
 	//Init and update interface for players
 	//IDK how to manage this w/o timers :(
@@ -83,11 +95,11 @@ void APointManager::BeginPlay()
 	// {
 	// 	if (FMath::RandBool())
 	// 	{
-	// 		ActivePlayer = "Player1";
+	// 		ActivePlayer = 1;
 	// 	}
 	// 	else
 	// 	{
-	// 		ActivePlayer = "Player2";
+	// 		ActivePlayer = 2;
 	// 	}
 	// 	PlayerBeganPreviousRound = ActivePlayer;
 	// }
