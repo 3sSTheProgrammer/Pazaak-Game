@@ -12,19 +12,28 @@ USTRUCT()
 struct FPMPlayerState
 {
 	GENERATED_BODY()
-	
-	TArray<int32> PlayerCardSlots = {};
-	int32 PlayerTableScore{ 0 };
-	int32 PlayerRoundsScore{ 0 };
-	bool PlayerPassed{ false };
+
+	UPROPERTY()
+	int32 ID{ -1 };
+	UPROPERTY()
+	TArray<int32> CardSlots = {};
+	UPROPERTY()
+	int32 TableScore{ 0 };
+	UPROPERTY()
+	int32 RoundsScore{ 0 };
+	UPROPERTY()
+	bool Passed{ false };
 };
 
 UENUM()
-enum EActivePlayerEnum
+enum EPlayerEnum
 {
+	PlayerNone = -1,
 	Player1 = 0,
-	Player2 = 1
+	Player2 = 1,
 };
+
+
 UCLASS()
 class MULTIPLAYERTEST_API APointManager : public AActor
 {
@@ -32,39 +41,39 @@ class MULTIPLAYERTEST_API APointManager : public AActor
 
 protected:
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Player1Updated)
 	FPMPlayerState Player1;
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Player2Updated)
 	FPMPlayerState Player2;
-	UPROPERTY(Replicated)
-	FPMPlayerState TestActivePlayer;
+	UPROPERTY(ReplicatedUsing = OnRep_ActivePlayerUpdated)
+	int32 ActivePlayerNum;
 	
-	TMap<int32, FPMPlayerState*> ActivePlayerMap;
+	TMap<int32, FPMPlayerState*> PlayerMap;
 	
 	// Current player cards
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
-	TArray<int32> Player1CardSlots = {};
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
-	TArray<int32> Player2CardSlots = {};
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersTableScoreUpdated)
-	int32 Player1TableScore{ 0 };
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersTableScoreUpdated)
-	int32 Player2TableScore{ 0 };
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersRoundsScoresUpdated)
-	int32 Player1RoundsScore{ 0 };
-	UPROPERTY(ReplicatedUsing = OnRep_PlayersRoundsScoresUpdated)
-	int32 Player2RoundsScore{ 0 };
-	
-	UPROPERTY(ReplicatedUsing = OnRep_ActivePlayerUpdated)
-	int32 ActivePlayer;
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
+	// TArray<int32> Player1CardSlots = {};
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersCardSlotsUpdated)
+	// TArray<int32> Player2CardSlots = {};
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersTableScoreUpdated)
+	// int32 Player1TableScore{ 0 };
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersTableScoreUpdated)
+	// int32 Player2TableScore{ 0 };
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersRoundsScoresUpdated)
+	// int32 Player1RoundsScore{ 0 };
+	// UPROPERTY(ReplicatedUsing = OnRep_PlayersRoundsScoresUpdated)
+	// int32 Player2RoundsScore{ 0 };
+	//
+	// UPROPERTY(ReplicatedUsing = OnRep_ActivePlayerUpdated)
+	// int32 ActivePlayer;
 	UPROPERTY()
 	int32 PlayerBeganPreviousRound;
 	
 	//Player passed statuses
-	UPROPERTY(Replicated)
-	bool Player1Passed{ false };
-	UPROPERTY(Replicated)
-	bool Player2Passed{ false };
+	// UPROPERTY(Replicated)
+	// bool Player1Passed{ false };
+	// UPROPERTY(Replicated)
+	// bool Player2Passed{ false };
 
 	//Widgets
 	UPROPERTY()
@@ -92,7 +101,7 @@ protected:
 	void InitGameInterface();
 
 	//
-	void GetCardFromDeck(int32 Player);
+	void GetCardFromDeck(int32 PlayerNum);
 	
 	// // Multicast update of interface after changes in game state
 	// UFUNCTION(NetMulticast, Reliable, WithValidation)
@@ -112,17 +121,23 @@ protected:
 	bool Multi_ShowMatchResult_Validate(int32 MatchWinner);
 	void Multi_ShowMatchResult_Implementation(int32 MatchWinner);
 
-	UFUNCTION()
-	void OnRep_PlayersTableScoreUpdated();
+	// UFUNCTION()
+	// void OnRep_PlayersTableScoreUpdated();
 
+	UFUNCTION()
+	void OnRep_Player1Updated();
+
+	UFUNCTION()
+	void OnRep_Player2Updated();
+	
 	UFUNCTION()
 	void OnRep_ActivePlayerUpdated();
 
-	UFUNCTION()
-	void OnRep_PlayersRoundsScoresUpdated();
-
-	UFUNCTION()
-	void OnRep_PlayersCardSlotsUpdated();
+	// UFUNCTION()
+	// void OnRep_PlayersRoundsScoresUpdated();
+	//
+	// UFUNCTION()
+	// void OnRep_PlayersCardSlotsUpdated();
 	
 public:	
 
@@ -142,8 +157,8 @@ public:
 	//Resets game state to start a new round
 	void ResetGame();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ResetGame();
-	bool Server_ResetGame_Validate();
-	void Server_ResetGame_Implementation();
+	// UFUNCTION(Server, Reliable, WithValidation)
+	// void Server_ResetGame();
+	// bool Server_ResetGame_Validate();
+	// void Server_ResetGame_Implementation();
 };

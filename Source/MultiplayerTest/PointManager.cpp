@@ -20,26 +20,41 @@ APointManager::APointManager()
 	bAlwaysRelevant = true;
 	
 	// Server randomly chooses first active player
-	if(HasAuthority())
-	{
-		//ActivePlayer = 1;
-		if (FMath::RandBool())
-		{
-			ActivePlayer = 1;
-		}
-		else
-		{
-			ActivePlayer = 2;
-		}
-		PlayerBeganPreviousRound = ActivePlayer;
-	}
+	// if(HasAuthority())
+	// {
+	// 	//ActivePlayer = 1;
+	// 	if (FMath::RandBool())
+	// 	{
+	// 		ActivePlayer = 1;
+	// 	}
+	// 	else
+	// 	{
+	// 		ActivePlayer = 2;
+	// 	}
+	// 	PlayerBeganPreviousRound = ActivePlayer;
+	// }
 
 	if (HasAuthority())
 	{
-		ActivePlayerMap.Add(EActivePlayerEnum::Player1, &Player1);
-		ActivePlayerMap.Add(EActivePlayerEnum::Player2, &Player2); 
+		Player1.ID = EPlayerEnum::Player1;
+		Player2.ID = EPlayerEnum::Player2;
+		
+		//Creating 
+		PlayerMap.Add(EPlayerEnum::Player1, &Player1);
+		PlayerMap.Add(EPlayerEnum::Player2, &Player2);
+
+		// Server randomly chooses first active player
+		if (FMath::RandBool())
+		{
+			ActivePlayerNum = EPlayerEnum::Player1;
+		}
+		else
+		{
+			ActivePlayerNum = EPlayerEnum::Player2;
+		}
+		PlayerBeganPreviousRound = ActivePlayerNum;
 	}
-	TestActivePlayer = *ActivePlayerMap[EActivePlayerEnum::Player1];
+	
 	
 	//UE_LOG(LogTemp, Warning, TEXT("TEST %d"), TestActivePlayer.PlayerPassed);
 	
@@ -103,10 +118,14 @@ void APointManager::BeginPlay()
 	// 	}
 	// 	PlayerBeganPreviousRound = ActivePlayer;
 	// }
+	
 	OnRep_ActivePlayerUpdated();
-	OnRep_PlayersCardSlotsUpdated();
-	OnRep_PlayersTableScoreUpdated();
-	OnRep_PlayersRoundsScoresUpdated();	
+	OnRep_Player1Updated();
+	OnRep_Player2Updated();
+	
+
+	// OnRep_Player1Updated();
+	// OnRep_Player2Updated();	
 	
 	
 	// FTimerHandle SyncTimerHandle;
@@ -126,8 +145,8 @@ void APointManager::Tick(float DeltaSeconds)
 	{
 		MessageColor = FColor::Red;
 	}
-	GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Green,
-		FString::Printf(TEXT("I am server %d; ActivePlayer is %d"), HasAuthority(), ActivePlayer));
+	GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, MessageColor,
+		FString::Printf(TEXT("I am player %d; ActivePlayer is %d"), !HasAuthority(), ActivePlayerNum));
 }
 
 
@@ -135,286 +154,200 @@ void APointManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APointManager, Player1CardSlots);
-	DOREPLIFETIME(APointManager, Player2CardSlots);
-	DOREPLIFETIME(APointManager, ActivePlayer);
-	DOREPLIFETIME(APointManager, Player1Passed);
-	DOREPLIFETIME(APointManager, Player2Passed);
-	DOREPLIFETIME(APointManager, Player1TableScore);
-	DOREPLIFETIME(APointManager, Player2TableScore);
-	DOREPLIFETIME(APointManager, Player1RoundsScore);
-	DOREPLIFETIME(APointManager, Player2RoundsScore);
+	// DOREPLIFETIME(APointManager, Player1CardSlots);
+	// DOREPLIFETIME(APointManager, Player2CardSlots);
+	// DOREPLIFETIME(APointManager, ActivePlayer);
+	// DOREPLIFETIME(APointManager, Player1Passed);
+	// DOREPLIFETIME(APointManager, Player2Passed);
+	// DOREPLIFETIME(APointManager, Player1TableScore);
+	// DOREPLIFETIME(APointManager, Player2TableScore);
+	// DOREPLIFETIME(APointManager, Player1RoundsScore);
+	// DOREPLIFETIME(APointManager, Player2RoundsScore);
+
+	DOREPLIFETIME(APointManager, Player1);
+	DOREPLIFETIME(APointManager, Player2);
+	DOREPLIFETIME(APointManager, ActivePlayerNum);
 }
 
 
 void APointManager::EndTurn()
 {
-	//TODO use pointers and pass them to GetCardFromDeck
-	// Initialize temporary variables 
-	TArray<int32> PlayerCardSlots;
-	int32 PlayerTableScore;
-	int32 AnotherPlayer;
-	bool AnotherPlayerPassed;
-
-	if (ActivePlayer == 1)
+	if (!HasAuthority())
 	{
-		PlayerCardSlots = Player1CardSlots;
-		PlayerTableScore = Player1TableScore;
-		AnotherPlayer = 2;
-		AnotherPlayerPassed = Player2Passed;
-	}
-	else
-	{
-		PlayerCardSlots = Player2CardSlots;
-		PlayerTableScore = Player2TableScore;
-		AnotherPlayer = 1;
-		AnotherPlayerPassed = Player1Passed;
+		UE_LOG(LogTemp, Warning, TEXT("End turn called from client!"));
+		return;
 	}
 
-	//Add card from deck to slot and recalculate PlayerTableScore
-	if (PlayerCardSlots.Num() < 9 && PlayerTableScore < 20)
-	{
-		GetCardFromDeck(ActivePlayer);
-		if (ActivePlayer == 1)
-		{
-			PlayerTableScore = Player1TableScore;
-		}
-		else
-		{
-			PlayerTableScore = Player2TableScore;
-		}
-	}
-	// If player score >= 20 he automatically passes
-	if (PlayerTableScore >= 20)
+	// Taking a card
+	GetCardFromDeck(ActivePlayerNum);
+
+	// If at least one pass condition is met, pass 
+	if (PlayerMap[ActivePlayerNum]->CardSlots.Num() == 9 || PlayerMap[ActivePlayerNum]->TableScore >= 20)
 	{
 		Pass();
+		return;
 	}
-	//Turn goes to another player if he hasn't passed already
-
-	// else if (AnotherPlayerPassed)
-	// {
-	// 	if (PlayerTableScore > AnotherPlayerTableScore)
-	// 	{
-	// 		Pass();
-	// 	}
-	// }
 	
-	else if (!AnotherPlayerPassed)
+	// If another player hasn't passed change active player
+	// (1 - ActivePlayerNum) is NonActivePlayerNum
+	if (!(PlayerMap[1 - ActivePlayerNum]->Passed))
 	{
-		ActivePlayer = AnotherPlayer;
-		if (HasAuthority())
-		{
-			OnRep_ActivePlayerUpdated();	
-		}
-		
+		ActivePlayerNum = 1 - ActivePlayerNum;
+		OnRep_ActivePlayerUpdated();
 	}
-
-	
-	
-	
-	//Update players interfaces 
-	// FTimerHandle TimerHandle;
-	// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.15);
-	
 }
 
 void APointManager::Pass()
 {
-	//Initialize temporary variables
-	bool OtherPlayerPassed;
-	int32 OtherPlayer;
-	int32 PlayerTableScore;
-	
-	if (ActivePlayer == 1)
+	if (!HasAuthority())
 	{
-		Player1Passed = true;
-		PlayerTableScore = Player1TableScore;
-		OtherPlayer = 2;
-		OtherPlayerPassed = Player2Passed;
-	}
-	else
-	{
-		Player2Passed = true;
-		PlayerTableScore = Player2TableScore;
-		OtherPlayer = 1;
-		OtherPlayerPassed = Player1Passed;
+		UE_LOG(LogTemp, Warning, TEXT("Pass called from client!"));
+		return;
 	}
 
-	//If player score >= 20 or other player also passed round ends
-	if (PlayerTableScore >= 20 || OtherPlayerPassed)
+	PlayerMap[ActivePlayerNum]->Passed = true;
+	
+	// TODO mb create function bool NotActivePlayerPassed() to check condition
+	// TODO or/and function void ChangeActivePlayer()
+	// if another player has passed or active player score is more then 20
+	if (PlayerMap[1 - ActivePlayerNum]->Passed ||
+		PlayerMap[ActivePlayerNum]->TableScore > 20)
 	{
-		// ActivePlayer = "None";
-		// OnRep_ActivePlayerUpdated();
 		EndRound();
 	}
-	//Otherwise turn goes to other player 
 	else
-	{
-		ActivePlayer = OtherPlayer;
-		if (HasAuthority())
-		{
-			OnRep_ActivePlayerUpdated();	
-		}
-		
+	{		
+		// change active player
+		ActivePlayerNum = 1 - ActivePlayerNum;
+		OnRep_ActivePlayerUpdated();
 	}
-	
-	//Update players interfaces 
-	// FTimerHandle TimerHandle;
-	// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.05);
 }
 
 void APointManager::EndRound()
 {
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EndRound called from client!"));
+		return;
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("Round ended"));
 
-	//Identify winner
-	int32 RoundWinner;
-	if (Player1TableScore > 20)
-	{
-		RoundWinner = 2;
-	}
-	else if (Player2TableScore > 20)
-	{
-		RoundWinner = 1;
-	}
-	else if (Player1TableScore == 20)
-	{
-		RoundWinner = 1;
-	}
-	else if (Player2TableScore == 20)
-	{
-		RoundWinner = 2;
-	}
-	else if (Player1TableScore == Player2TableScore)
-	{
-		RoundWinner = 0; //Draw
-	}
-	else if (Player1TableScore > Player2TableScore)
-	{
-		RoundWinner = 1;
-	}
-	else
-	{
-		RoundWinner = 2;
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Winner is %d"), RoundWinner);
-
-	//Change rounds score
-	if (RoundWinner == 1)
-	{
-		Player1RoundsScore += 1;
-		//OnRep_PlayersRoundsScoresUpdated();
-	}
-	else if (RoundWinner == 2)
-	{
-		Player2RoundsScore += 1;
-		//OnRep_PlayersRoundsScoresUpdated();
-	}
-	if (HasAuthority())
-	{
-		OnRep_PlayersRoundsScoresUpdated();		
-	}
+	// Disable buttons for both players
+	ActivePlayerNum = EPlayerEnum::PlayerNone;
 	
-
-	if (Player1RoundsScore == 3 || Player2RoundsScore == 3)
+	//Change players round scores
+	int32 RoundWinner{ EPlayerEnum::PlayerNone };
+	if (Player1.TableScore > 20)
 	{
-		int32 MatchWinner;
-		if (Player1RoundsScore == 3)
+		RoundWinner = EPlayerEnum::Player2;
+	}
+	else if (Player2.TableScore > 20)
+	{
+		RoundWinner = EPlayerEnum::Player1;
+	}
+	else if (Player1.TableScore > Player2.TableScore)
+	{
+		RoundWinner = EPlayerEnum::Player1;
+	}
+	else if (Player2.TableScore > Player1.TableScore)
+	{
+		RoundWinner = EPlayerEnum::Player2;
+	}
+
+	// If round wasn't a draw 
+	if (RoundWinner != EPlayerEnum::PlayerNone)
+	{
+		// Increase winner's round points
+        PlayerMap[RoundWinner]->RoundsScore += 1;
+		OnRep_Player1Updated();
+		OnRep_Player2Updated();
+		
+		UE_LOG(LogTemp, Warning, TEXT("Round score is %d : %d"), Player1.TableScore, Player2.TableScore);
+		
+		// If one of players got 3 round wins
+		if (Player1.RoundsScore == 3 || Player2.RoundsScore == 3)
 		{
-			MatchWinner = 1;
+			//End match after a short time (needed for replication)
+			FTimerHandle TimerHandle;
+			FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(this,
+				&APointManager::Multi_ShowMatchResult, RoundWinner);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.2, false);
 		}
 		else
 		{
-			MatchWinner = 2;
-		}
-		//End match
-		Multi_ShowMatchResult(MatchWinner);
-	}
-	else
-	{
-		//Show winner
-		Multi_ShowRoundResult(RoundWinner);
+			//Show round winner
+			Multi_ShowRoundResult(RoundWinner);
 		
-		//After a short time restart round
-		
-		if (HasAuthority())
-		{
+			// Restart round after delay
 			FTimerHandle ResetTimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(ResetTimerHandle, this, &APointManager::ResetGame, 3);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("YOU SHOULDNT BE HERE"));
-		}
 	}
-	
-	
 }
 
 void APointManager::ResetGame()
 {
-	Player1CardSlots = {};
-	Player2CardSlots = {};
-	Player1TableScore = 0;
-	Player2TableScore = 0;
-	Player1Passed = false;
-	Player2Passed = false;
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ResetGame called from client!"));
+		return;
+	}
+	
+	Player1.CardSlots = {};
+	Player2.CardSlots = {};
+	Player1.TableScore = 0;
+	Player2.TableScore = 0;
+	Player1.Passed = false;
+	Player2.Passed = false;
 	
 	// Remember who began previous round and change to another player
-	//ActivePlayer = 3;
-	if (PlayerBeganPreviousRound == 1)
-	{
-		ActivePlayer = 2;
-	}
-	else
-	{
-		ActivePlayer = 1;
-	}
-	PlayerBeganPreviousRound = ActivePlayer;
-	
-	//TODO TEST
-	if (HasAuthority())
-	{
-		OnRep_PlayersTableScoreUpdated();
-		OnRep_ActivePlayerUpdated();
-		OnRep_PlayersRoundsScoresUpdated();
-		OnRep_PlayersCardSlotsUpdated();
-	}
-	
+	ActivePlayerNum = 1 - PlayerBeganPreviousRound;
+	PlayerBeganPreviousRound = ActivePlayerNum;
 
-	// FTimerHandle TimerHandle;
-	// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &APointManager::Multi_UpdateInterface, 0.15);
-	
+	//Update interface on server
+	OnRep_Player1Updated();
+	OnRep_Player2Updated();
+	OnRep_ActivePlayerUpdated();
 }
 
-bool APointManager::Server_ResetGame_Validate()
-{
-	return true;
-}
-
-void APointManager::Server_ResetGame_Implementation()
-{
-	ResetGame();
-}
+// bool APointManager::Server_ResetGame_Validate()
+// {
+// 	return true;
+// }
+//
+// void APointManager::Server_ResetGame_Implementation()
+// {
+// 	ResetGame();
+// }
 
 // bool APointManager::Multi_UpdateInterface_Validate()
 // {
 // 	return true;
 // }
-
+//
 // void APointManager::Multi_UpdateInterface_Implementation()
 // {
+// 	UE_LOG(LogTemp, Warning, TEXT("%d updating interface"), !HasAuthority());
 // 	if (!GameInterface)
 // 	{
 // 		InitGameInterface();
 // 	}
-// 	GameInterface->UpdatePlayerInterface(Player1CardSlots, Player2CardSlots, ActivePlayer,
-// 		Player1TableScore, Player2TableScore, Player1RoundsScore, Player2RoundsScore);
+// 	GameInterface->UpdateButtons(ActivePlayerNum);
 // }
 
 bool APointManager::Multi_ShowRoundResult_Validate(int32 RoundWinner)
 {
+	if (!PlayerMap[RoundWinner])
+	{
+		return false;
+	}
+
+	if (PlayerMap[RoundWinner]->RoundsScore > 3)
+	{
+		return false;
+	}
+		
 	return true;
 }
 
@@ -443,49 +376,37 @@ void APointManager::Multi_ShowMatchResult_Implementation(int32 MatchWinner)
 	}
 }
 
-void APointManager::OnRep_PlayersTableScoreUpdated()
+void APointManager::OnRep_Player1Updated()
 {
-	// if (!GameInterface)
-	// {
-	// 	InitGameInterface();
-	// }
-	GameInterface->UpdateTableScores(Player1TableScore, Player2TableScore);
+	if (!GameInterface)
+	{
+		InitGameInterface();
+	}
+	GameInterface->UpdatePlayerInterface(Player1);
+}
+
+void APointManager::OnRep_Player2Updated()
+{
+	if (!GameInterface)
+	{
+		InitGameInterface();
+	}
+	GameInterface->UpdatePlayerInterface(Player2);
 }
 
 void APointManager::OnRep_ActivePlayerUpdated()
 {
-	// if (!GameInterface)
-	// {
-	// 	InitGameInterface();
-	// }
-	// if (HasAuthority())
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("Server updating buttons"));
-	// }
-	// else
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("Client updating buttons"));
-	// }
-	GameInterface->UpdateButtons(ActivePlayer);
+	if (!GameInterface)
+	{
+		InitGameInterface();
+	}
+	GameInterface->UpdateButtons(ActivePlayerNum);
 }
 
-void APointManager::OnRep_PlayersRoundsScoresUpdated()
-{
-	// if (!GameInterface)
-	// {
-	// 	InitGameInterface();
-	// }
-	GameInterface->UpdateRoundScores(Player1RoundsScore, Player2RoundsScore);
-}
-
-void APointManager::OnRep_PlayersCardSlotsUpdated()
-{
-	// if (!GameInterface)
-	// {
-	// 	InitGameInterface();
-	// }
-	GameInterface->UpdatePlayersCardSlots(Player1CardSlots, Player2CardSlots);
-}
+// void APointManager::OnRep_PlayersCardSlotsUpdated()
+// {
+// 	GameInterface->UpdatePlayersCardSlots(Player1CardSlots, Player2CardSlots);
+// }
 
 void APointManager::InitGameInterface()
 {
@@ -500,34 +421,26 @@ void APointManager::InitGameInterface()
 	}
 }
 
-void APointManager::GetCardFromDeck(int32 Player)
+void APointManager::GetCardFromDeck(int32 PlayerNum)
 {
-	//TODO implement player decks
-	if (Player == 1)
+	if (!HasAuthority())
 	{
-		const int32 CardValue = FMath::RandRange(1, 9);
-		Player1TableScore += CardValue;
-		Player1CardSlots.Add(CardValue);
-		if (HasAuthority())
-		{
-			OnRep_PlayersTableScoreUpdated();
-			OnRep_PlayersCardSlotsUpdated();
-		}
-		
-		//UE_LOG(LogTemp, Warning, TEXT("Player1 score: %d"), Player1TableScore);
+		UE_LOG(LogTemp, Warning, TEXT("GetCardFromDeck called from client!"));
+		return;
 	}
-	else
+
+	//TODO implement player decks
+	const int32 CardValue = FMath::RandRange(1, 9);
+	PlayerMap[PlayerNum]->CardSlots.Add(CardValue);
+	PlayerMap[PlayerNum]->TableScore += CardValue;
+
+	if (PlayerNum == EPlayerEnum::Player1)
 	{
-		const int32 CardValue = FMath::RandRange(1, 9);
-		Player2TableScore += CardValue;
-		Player2CardSlots.Add(CardValue);
-		if (HasAuthority())
-		{
-			OnRep_PlayersTableScoreUpdated();
-			OnRep_PlayersCardSlotsUpdated();
-		}
-		
-		//UE_LOG(LogTemp, Warning, TEXT("Player2 score: %d"), Player2TableScore);
+		OnRep_Player1Updated();
+	}
+	else if (PlayerNum == EPlayerEnum::Player2)
+	{
+		OnRep_Player2Updated();
 	}
 }
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PointManager.h"
 #include "Blueprint/UserWidget.h"
 #include "TestUserWidget.generated.h"
 
@@ -10,6 +11,19 @@ class UButton;
 class UImage;
 class UTextBlock;
 class APazaakPlayerController;
+
+USTRUCT()
+struct FPlayerInterface
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	UTextBlock* TableScore;
+	UPROPERTY()
+	TArray<UImage*> CardSlots;
+	UPROPERTY()
+	UImage* RoundScore;
+};
 /**
  * 
  */
@@ -22,12 +36,13 @@ protected:
 	//APointManager* PointManager;
 
 	//Saved for efficiency
+	UPROPERTY()
 	APazaakPlayerController* PazaakPlayerController;
 	
 	UPROPERTY(meta = (BindWidget))
-		UButton* ButtonEndTurn;
+	UButton* ButtonEndTurn;
 	UPROPERTY(meta = (BindWidget))
-		UButton* ButtonPass;
+	UButton* ButtonPass;
 
 	//Players card slots
 	UPROPERTY(meta = (BindWidget))
@@ -109,12 +124,19 @@ protected:
 	UTexture2D* TextureRoundScore2;
 	UPROPERTY(EditAnywhere)
 	UTexture2D* TextureRoundScore3;
+
+	// Player interface structs
+	FPlayerInterface Player1Interface;
+	FPlayerInterface Player2Interface;
+	TMap<int32, FPlayerInterface*> PlayerInterfaceMap;
 	
-	//Arrays
+	//Arrays of textures
+	UPROPERTY()
 	TArray<UTexture2D*> CardValues;
+	UPROPERTY()
 	TArray<UTexture2D*> RoundScoresTextures;
-	TArray<UImage*> Player1CardSlotsArray;
-	TArray<UImage*> Player2CardSlotsArray;
+	//TArray<UImage*> Player1CardSlotsArray;
+	//TArray<UImage*> Player2CardSlotsArray;
 
 	int32 PlayerName;
 public:
@@ -122,9 +144,12 @@ public:
 
 	//Called in multicast function to update player interface according to game state
 	UFUNCTION()
-	void UpdatePlayerInterface(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer,
+	void UpdatePlayerInterfaceOld(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots, FString ActivePlayer,
 		int32 Player1TableScore, int32 Player2TableScore, int32 Player1RoundsScore, int32 Player2RoundsScore);
 
+	UFUNCTION()
+	void UpdatePlayerInterface(FPMPlayerState Player);
+	
 	UFUNCTION()
 	void UpdateTableScores(int32 Player1TableScore, int32 Player2TableScore);
 
@@ -134,9 +159,9 @@ public:
 	UFUNCTION()
 	void UpdateRoundScores(int32 Player1RoundsScore, int32 Player2RoundsScore);
 
-	UFUNCTION()
-	void UpdatePlayersCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
-protected:
+// 	UFUNCTION()
+// 	void UpdatePlayersCardSlots(TArray<int32> Player1CardSlots, TArray<int32> Player2CardSlots);
+	protected:
 
 	//Used in UpdatePlayerInterface
 	void FillSlot(UImage* CardSlot, int32 CardValue);

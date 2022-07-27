@@ -2,7 +2,7 @@
 
 
 #include "RoundEndWidget.h"
-
+#include "PointManager.h"
 #include "Components/TextBlock.h"
 
 void URoundEndWidget::NativeConstruct()
@@ -19,16 +19,16 @@ void URoundEndWidget::SetRoundResult(int32 RoundWinner)
 	int32 PlayerName;
 	if (GetWorld()->IsServer())
 	{
-		PlayerName = 1;
+		PlayerName = EPlayerEnum::Player1;
 	}
 	else
 	{
-		PlayerName = 2;
+		PlayerName = EPlayerEnum::Player2;
 	}
 
 	//Select result text
 	FString ResultMessage;
-	if (RoundWinner == 0)
+	if (RoundWinner == EPlayerEnum::PlayerNone)
 	{
 		ResultMessage = "Draw";
 	}
